@@ -68,7 +68,7 @@ export default function DashboardPage() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 sm:gap-6 mb-4 sm:mb-6 sm:mb-8">
         <StatCard
-          title="Total Revenue"
+          title={stats?.role === 'customer' ? 'Total Spent' : 'Total Revenue'}
           value={formatCurrency(stats?.totalRevenue || 0)}
           change="+12.5% from last month"
           changeType="positive"
@@ -76,40 +76,46 @@ export default function DashboardPage() {
           delay={0}
         />
         <StatCard
-          title="Total Orders"
+          title={stats?.role === 'customer' ? 'My Orders' : 'Total Orders'}
           value={stats?.totalOrders || 0}
           change="+8.2% from last month"
           changeType="positive"
           icon={ShoppingCart}
           delay={0.1}
         />
-        <StatCard
-          title="Active Customers"
-          value={stats?.totalCustomers || 0}
-          change="+15.3% from last month"
-          changeType="positive"
-          icon={Users}
-          delay={0.2}
-        />
-        <StatCard
-          title="Available Accounts"
-          value={stats?.totalAccounts || 0}
-          change="+2.4% from last month"
-          changeType="positive"
-          icon={TrendingUp}
-          delay={0.3}
-        />
+        {stats?.role === 'admin' && (
+          <StatCard
+            title="Active Customers"
+            value={stats?.totalCustomers || 0}
+            change="+15.3% from last month"
+            changeType="positive"
+            icon={Users}
+            delay={0.2}
+          />
+        )}
+        {stats?.role !== 'customer' && (
+          <StatCard
+            title={stats?.role === 'seller' ? 'My Accounts' : 'Available Accounts'}
+            value={stats?.totalAccounts || 0}
+            change="+2.4% from last month"
+            changeType="positive"
+            icon={TrendingUp}
+            delay={0.3}
+          />
+        )}
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-4 sm:gap-6 mb-4 sm:mb-6 sm:mb-8">
-        <div className="lg:col-span-2">
-          <RevenueChart data={revenueData} />
+      {/* Charts Row - Only show for admin and seller */}
+      {stats?.role !== 'customer' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-4 sm:gap-6 mb-4 sm:mb-6 sm:mb-8">
+          <div className="lg:col-span-2">
+            <RevenueChart data={revenueData} />
+          </div>
+          <div>
+            <PlatformDistribution data={platformData} />
+          </div>
         </div>
-        <div>
-          <PlatformDistribution data={platformData} />
-        </div>
-      </div>
+      )}
 
       {/* Recent Orders */}
       <RecentOrders orders={orders} />

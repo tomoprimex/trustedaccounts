@@ -1,37 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Search, Plus, Copy, Check, Eye, Edit, Trash2 } from "lucide-react";
-
-const accounts = [
-  { id: "ACC-001", platform: "Facebook", username: "john_doe_2024", email: "john.doe@example.com", status: "available", price: "$15.00", addedDate: "2024-01-15" },
-  { id: "ACC-002", platform: "Instagram", username: "sarah_style", email: "sarah@example.com", status: "available", price: "$15.00", addedDate: "2024-01-15" },
-  { id: "ACC-003", platform: "YouTube", username: "TechReviews2024", email: "tech@example.com", status: "sold", price: "$49.00", addedDate: "2024-01-14" },
-  { id: "ACC-004", platform: "TikTok", username: "dance_queen", email: "dance@example.com", status: "available", price: "$15.00", addedDate: "2024-01-14" },
-  { id: "ACC-005", platform: "Twitter", username: "news_updates", email: "news@example.com", status: "sold", price: "$15.00", addedDate: "2024-01-13" },
-  { id: "ACC-006", platform: "Facebook", username: "gaming_pro", email: "gaming@example.com", status: "available", price: "$15.00", addedDate: "2024-01-13" },
-  { id: "ACC-007", platform: "Instagram", username: "foodie_life", email: "food@example.com", status: "reserved", price: "$49.00", addedDate: "2024-01-12" },
-  { id: "ACC-008", platform: "YouTube", username: "music_vibes", email: "music@example.com", status: "available", price: "$49.00", addedDate: "2024-01-12" },
-];
+import { getAccounts } from "@/lib/supabase/queries";
 
 const statusConfig = {
   available: { label: "Available", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
   sold: { label: "Sold", color: "bg-slate-100 text-slate-700 border-slate-200" },
   reserved: { label: "Reserved", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  removed: { label: "Removed", color: "bg-red-100 text-red-700 border-red-200" },
 };
 
+function formatCurrency(cents: number, currency: string) {
+  const amount = cents / 100;
+  if (currency === 'NGN') {
+    return `₦${amount.toLocaleString()}`;
+  }
+  return `$${amount.toLocaleString()}`;
+}
+
 export default function AccountsPage() {
+  const [accounts, setAccounts] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [platformFilter, setPlatformFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadAccounts() {
+      try {
+        const data = await getAccounts({ limit: 100 });
+        setAccounts(data || []);
+      } catch (error) {
+        console.error('Error loading accounts:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadAccounts();
+  }, []);
 
   const filteredAccounts = accounts.filter(account => {
-    const matchesSearch = account.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         account.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         account.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = account.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         account.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         account.id?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlatform = platformFilter === "all" || account.platform === platformFilter;
     const matchesStatus = statusFilter === "all" || account.status === statusFilter;
     return matchesSearch && matchesPlatform && matchesStatus;
@@ -42,6 +57,16 @@ export default function AccountsPage() {
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E3A8A]"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -199,11 +224,11 @@ export default function AccountsPage() {
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-slate-500">Price</span>
-                  <span className="text-[#1E3A8A] font-bold">{account.price}</span>
+                  <span className="text-[#1E3A8A] font-bold">{formatCurrency(account.price_cents, account.currency)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-slate-500">Added</span>
-                  <span className="text-slate-700">{account.addedDate}</span>
+                  <span className="text-slate-700">{new Date(account.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
 

@@ -1,35 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Search, Mail, Phone, MapPin, MoreVertical, Calendar } from "lucide-react";
-
-const customers = [
-  { id: "CUST-001", name: "Alex Johnson", email: "alex@example.com", phone: "+1 234 567 8901", location: "New York, USA", totalOrders: 12, totalSpent: "$540.00", joinDate: "2024-01-10", status: "active" },
-  { id: "CUST-002", name: "Sarah Williams", email: "sarah@example.com", phone: "+1 234 567 8902", location: "Los Angeles, USA", totalOrders: 8, totalSpent: "$360.00", joinDate: "2024-01-08", status: "active" },
-  { id: "CUST-003", name: "Mike Chen", email: "mike@example.com", phone: "+1 234 567 8903", location: "San Francisco, USA", totalOrders: 5, totalSpent: "$225.00", joinDate: "2024-01-05", status: "active" },
-  { id: "CUST-004", name: "Emma Davis", email: "emma@example.com", phone: "+1 234 567 8904", location: "Chicago, USA", totalOrders: 15, totalSpent: "$675.00", joinDate: "2024-01-03", status: "active" },
-  { id: "CUST-005", name: "James Brown", email: "james@example.com", phone: "+1 234 567 8905", location: "Houston, USA", totalOrders: 3, totalSpent: "$135.00", joinDate: "2024-01-01", status: "inactive" },
-  { id: "CUST-006", name: "Lisa Anderson", email: "lisa@example.com", phone: "+1 234 567 8906", location: "Phoenix, USA", totalOrders: 20, totalSpent: "$900.00", joinDate: "2023-12-28", status: "active" },
-];
+import { getCustomers } from "@/lib/supabase/queries";
 
 const statusConfig = {
   active: { label: "Active", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
   inactive: { label: "Inactive", color: "bg-slate-100 text-slate-700 border-slate-200" },
+  suspended: { label: "Suspended", color: "bg-red-100 text-red-700 border-red-200" },
 };
 
+function formatCurrency(cents: number) {
+  const amount = cents / 100;
+  return `₦${amount.toLocaleString()}`;
+}
+
 export default function CustomersPage() {
+  const [customers, setCustomers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadCustomers() {
+      try {
+        const data = await getCustomers({ limit: 100 });
+        setCustomers(data || []);
+      } catch (error) {
+        console.error('Error loading customers:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadCustomers();
+  }, []);
 
   const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = customer.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         customer.id?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || customer.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E3A8A]"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -90,7 +114,9 @@ export default function CustomersPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-slate-500">Total Revenue</p>
-              <p className="text-3xl font-bold text-[#1E3A8A] mt-1">$2,835</p>
+              <p className="text-3xl font-bold text-[#1E3A8A] mt-1">
+                {formatCurrency(customers.reduce((acc, c) => acc + (c.customer_analytics?.total_spent_cents || 0), 0))}
+              </p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-[#1E3A8A]/10 flex items-center justify-center">
               <span className="text-2xl">💰</span>
@@ -102,7 +128,7 @@ export default function CustomersPage() {
             <div>
               <p className="text-sm font-medium text-slate-500">Avg. Orders</p>
               <p className="text-3xl font-bold text-slate-600 mt-1">
-                {Math.round(customers.reduce((acc, c) => acc + c.totalOrders, 0) / customers.length)}
+                {customers.length > 0 ? Math.round(customers.reduce((acc, c) => acc + (c.customer_analytics?.total_orders || 0), 0) / customers.length) : 0}
               </p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
@@ -167,11 +193,11 @@ export default function CustomersPage() {
                 <div className="flex items-center gap-3">
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#1E3A8A] to-[#1E40AF] flex items-center justify-center shadow-lg shadow-[#1E3A8A]/20">
                     <span className="text-white font-bold text-lg">
-                      {customer.name.split(' ').map(n => n[0]).join('')}
+                      {(customer.full_name || 'U').charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-700">{customer.name}</p>
+                    <p className="font-semibold text-slate-700">{customer.full_name || 'Unknown'}</p>
                     <p className="text-sm text-slate-500">{customer.email}</p>
                   </div>
                 </div>
@@ -183,25 +209,21 @@ export default function CustomersPage() {
               <div className="space-y-3 mb-4">
                 <div className="flex items-center gap-2 text-sm">
                   <Phone size={16} className="text-slate-400" />
-                  <span className="text-slate-700">{customer.phone}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin size={16} className="text-slate-400" />
-                  <span className="text-slate-700">{customer.location}</span>
+                  <span className="text-slate-700">{customer.phone || 'N/A'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar size={16} className="text-slate-400" />
-                  <span className="text-slate-700">Joined {customer.joinDate}</span>
+                  <span className="text-slate-700">Joined {new Date(customer.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-[#1E3A8A]">{customer.totalOrders}</p>
+                  <p className="text-2xl font-bold text-[#1E3A8A]">{customer.customer_analytics?.total_orders || 0}</p>
                   <p className="text-xs text-slate-500">Orders</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-[#1E3A8A]">{customer.totalSpent}</p>
+                  <p className="text-2xl font-bold text-[#1E3A8A]">{formatCurrency(customer.customer_analytics?.total_spent_cents || 0)}</p>
                   <p className="text-xs text-slate-500">Total Spent</p>
                 </div>
               </div>

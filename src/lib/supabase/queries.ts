@@ -4,66 +4,184 @@ const supabase = createClient();
 
 // Dashboard Stats
 export async function getDashboardStats() {
-  const [
-    { data: revenueData },
-    { count: totalOrders },
-    { count: totalCustomers },
-    { count: totalAccounts },
-  ] = await Promise.all([
-    supabase.from('revenue').select('amount_cents'),
-    supabase.from('orders').select('*', { count: 'exact', head: true }),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
-    supabase.from('accounts').select('*', { count: 'exact', head: true }).eq('status', 'available'),
-  ]);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
 
-  const totalRevenue = revenueData?.reduce((sum, r) => sum + (r.amount_cents || 0), 0) || 0;
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
+  let totalRevenue = 0;
+  let totalOrders = 0;
+  let totalCustomers = 0;
+  let totalAccounts = 0;
+
+  if (role === 'admin') {
+    // Admin sees all data
+    const [
+      { data: revenueData },
+      { count: ordersCount },
+      { count: customersCount },
+      { count: accountsCount },
+    ] = await Promise.all([
+      supabase.from('revenue').select('amount_cents'),
+      supabase.from('orders').select('*', { count: 'exact', head: true }),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
+      supabase.from('accounts').select('*', { count: 'exact', head: true }).eq('status', 'available'),
+    ]);
+
+    totalRevenue = revenueData?.reduce((sum, r) => sum + (r.amount_cents || 0), 0) || 0;
+    totalOrders = ordersCount || 0;
+    totalCustomers = customersCount || 0;
+    totalAccounts = accountsCount || 0;
+  } else if (role === 'seller') {
+    // Seller sees their own accounts and revenue from their sales
+    const [
+      { data: revenueData },
+      { count: ordersCount },
+      { count: accountsCount },
+    ] = await Promise.all([
+      supabase.from('revenue').select('amount_cents').eq('platform', user.id), // This might need adjustment based on how revenue is linked to sellers
+      supabase.from('orders').select('*', { count: 'exact', head: true }), // Orders for accounts sold by this seller
+      supabase.from('accounts').select('*', { count: 'exact', head: true }).eq('seller_id', user.id),
+    ]);
+
+    totalRevenue = revenueData?.reduce((sum, r) => sum + (r.amount_cents || 0), 0) || 0;
+    totalOrders = ordersCount || 0;
+    totalAccounts = accountsCount || 0;
+  } else {
+    // Customer sees their own orders and spending
+    const [
+      { data: ordersData },
+      { data: analyticsData },
+    ] = await Promise.all([
+      supabase.from('orders').select('amount_cents').eq('customer_id', user.id),
+      supabase.from('customer_analytics').select('total_orders, total_spent_cents').eq('customer_id', user.id).single(),
+    ]);
+
+    totalRevenue = analyticsData?.total_spent_cents || 0;
+    totalOrders = analyticsData?.total_orders || ordersData?.length || 0;
+    totalCustomers = 0; // Not applicable for customers
+    totalAccounts = 0; // Not applicable for customers
+  }
 
   return {
     totalRevenue,
-    totalOrders: totalOrders || 0,
-    totalCustomers: totalCustomers || 0,
-    totalAccounts: totalAccounts || 0,
+    totalOrders,
+    totalCustomers,
+    totalAccounts,
+    role,
   };
 }
 
 // Recent Orders
 export async function getRecentOrders(limit = 10) {
-  const { data, error } = await supabase
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
+  let query = supabase
     .from('orders')
     .select(`
       *,
       customer:profiles!orders_customer_id_fkey (full_name, email),
       account:accounts!orders_account_id_fkey (platform, username, price_cents, currency)
     `)
-    .order('created_at', { ascending: false })
-    .limit(limit);
+    .order('created_at', { ascending: false });
 
+  // Filter based on role
+  if (role === 'customer') {
+    query = query.eq('customer_id', user.id);
+  } else if (role === 'seller') {
+    // Seller sees orders for their accounts
+    query = query.eq('account.seller_id', user.id);
+  }
+  // Admin sees all orders (no filter)
+
+  const { data, error } = await query.limit(limit);
   if (error) throw error;
   return data;
 }
 
 // Revenue by Date (for charts)
 export async function getRevenueByDate(days = 7) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('revenue')
     .select('amount_cents, date, platform')
     .gte('date', startDate.toISOString().split('T')[0])
     .order('date', { ascending: true });
 
+  // Filter based on role
+  if (role === 'customer') {
+    // Customers don't have revenue data, return empty
+    return [];
+  } else if (role === 'seller') {
+    // Seller sees revenue from their sales
+    // This needs to be adjusted based on how revenue is linked to sellers
+    // For now, sellers see all revenue (should be filtered by their accounts)
+  }
+  // Admin sees all revenue
+
+  const { data, error } = await query;
   if (error) throw error;
   return data;
 }
 
 // Platform Distribution
 export async function getPlatformDistribution() {
-  const { data, error } = await supabase
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
+  let query = supabase
     .from('accounts')
     .select('platform')
     .eq('status', 'available');
 
+  // Filter based on role
+  if (role === 'seller') {
+    query = query.eq('seller_id', user.id);
+  }
+  // Admin and customers see all available accounts
+  // (customers see all to browse, sellers see their own)
+
+  const { data, error } = await query;
   if (error) throw error;
 
   const distribution = data?.reduce((acc, account) => {

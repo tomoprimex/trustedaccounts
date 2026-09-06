@@ -1,12 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { User, Bell, Shield, CreditCard, Globe, Moon, Sun } from "lucide-react";
+import { getUserProfile, updateUserProfile } from "@/lib/supabase/queries";
 
 export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: '',
+    phone: '',
+    bio: '',
+  });
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const data = await getUserProfile();
+        if (data) {
+          setProfile(data);
+          setFormData({
+            full_name: data.full_name || '',
+            phone: data.phone || '',
+            bio: '', // Bio not in schema, keeping for UI
+          });
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfile();
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await updateUserProfile({
+        full_name: formData.full_name,
+        phone: formData.phone,
+      });
+      alert('Profile updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E3A8A]"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -71,7 +127,9 @@ export default function SettingsPage() {
             
             <div className="flex items-center gap-6 mb-6">
               <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#1E3A8A] to-[#1E40AF] flex items-center justify-center shadow-lg shadow-[#1E3A8A]/20">
-                <span className="text-white font-bold text-3xl">TA</span>
+                <span className="text-white font-bold text-3xl">
+                  {(profile?.full_name || 'U').charAt(0).toUpperCase()}
+                </span>
               </div>
               <div>
                 <motion.button
@@ -87,18 +145,20 @@ export default function SettingsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">First Name</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Full Name</label>
                 <input
                   type="text"
-                  defaultValue="Trusted"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                   className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A] transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Last Name</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Phone</label>
                 <input
-                  type="text"
-                  defaultValue="Accounts"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A] transition-all"
                 />
               </div>
@@ -106,15 +166,17 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
                 <input
                   type="email"
-                  defaultValue="admin@trustedaccounts.com"
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A] transition-all"
+                  value={profile?.email || ''}
+                  disabled
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A] transition-all bg-slate-50"
                 />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">Bio</label>
                 <textarea
                   rows={3}
-                  defaultValue="Premium verified logins for all major social media platforms."
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                   className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A] transition-all resize-none"
                 />
               </div>
@@ -124,9 +186,11 @@ export default function SettingsPage() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-6 py-2.5 bg-[#1E3A8A] text-white rounded-lg font-medium shadow-lg shadow-[#1E3A8A]/20"
+                onClick={handleSave}
+                disabled={saving}
+                className="px-6 py-2.5 bg-[#1E3A8A] text-white rounded-lg font-medium shadow-lg shadow-[#1E3A8A]/20 disabled:opacity-50"
               >
-                Save Changes
+                {saving ? 'Saving...' : 'Save Changes'}
               </motion.button>
             </div>
           </div>

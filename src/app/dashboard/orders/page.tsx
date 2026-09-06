@@ -1,39 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Search, Filter, Download, Eye, MoreVertical } from "lucide-react";
-
-const orders = [
-  { id: "#ORD-001", customer: "Alex Johnson", email: "alex@example.com", platform: "Facebook", amount: "$15.00", status: "completed", date: "2024-01-15 14:32" },
-  { id: "#ORD-002", customer: "Sarah Williams", email: "sarah@example.com", platform: "Instagram", amount: "$49.00", status: "completed", date: "2024-01-15 14:20" },
-  { id: "#ORD-003", customer: "Mike Chen", email: "mike@example.com", platform: "TikTok", amount: "$15.00", status: "pending", date: "2024-01-15 14:05" },
-  { id: "#ORD-004", customer: "Emma Davis", email: "emma@example.com", platform: "YouTube", amount: "$49.00", status: "processing", date: "2024-01-15 13:45" },
-  { id: "#ORD-005", customer: "James Brown", email: "james@example.com", platform: "Twitter", amount: "$15.00", status: "completed", date: "2024-01-15 13:30" },
-  { id: "#ORD-006", customer: "Lisa Anderson", email: "lisa@example.com", platform: "Facebook", amount: "$49.00", status: "completed", date: "2024-01-15 13:15" },
-  { id: "#ORD-007", customer: "David Wilson", email: "david@example.com", platform: "Instagram", amount: "$15.00", status: "failed", date: "2024-01-15 12:50" },
-  { id: "#ORD-008", customer: "Jennifer Lee", email: "jennifer@example.com", platform: "TikTok", amount: "$49.00", status: "completed", date: "2024-01-15 12:35" },
-];
+import { getOrders } from "@/lib/supabase/queries";
 
 const statusConfig = {
   completed: { label: "Completed", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
   pending: { label: "Pending", color: "bg-amber-100 text-amber-700 border-amber-200" },
   processing: { label: "Processing", color: "bg-blue-100 text-blue-700 border-blue-200" },
   failed: { label: "Failed", color: "bg-red-100 text-red-700 border-red-200" },
+  refunded: { label: "Refunded", color: "bg-slate-100 text-slate-700 border-slate-200" },
 };
 
+function formatCurrency(cents: number, currency: string) {
+  const amount = cents / 100;
+  if (currency === 'NGN') {
+    return `₦${amount.toLocaleString()}`;
+  }
+  return `$${amount.toLocaleString()}`;
+}
+
 export default function OrdersPage() {
+  const [orders, setOrders] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadOrders() {
+      try {
+        const data = await getOrders({ limit: 100 });
+        setOrders(data || []);
+      } catch (error) {
+        console.error('Error loading orders:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadOrders();
+  }, []);
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = order.customer?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.order_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.customer?.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E3A8A]"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -130,27 +155,27 @@ export default function OrdersPage() {
                   >
                     <td className="px-6 py-4">
                       <span className="font-semibold text-[#1E3A8A] group-hover:text-[#1E40AF] transition-colors">
-                        {order.id}
+                        {order.order_number}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <p className="font-medium text-slate-700">{order.customer}</p>
-                        <p className="text-sm text-slate-500">{order.email}</p>
+                        <p className="font-medium text-slate-700">{order.customer?.full_name || 'Unknown'}</p>
+                        <p className="text-sm text-slate-500">{order.customer?.email || 'N/A'}</p>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                        {order.platform}
+                        {order.account?.platform || 'N/A'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 font-semibold text-slate-900">{order.amount}</td>
+                    <td className="px-6 py-4 font-semibold text-slate-900">{formatCurrency(order.amount_cents, order.currency)}</td>
                     <td className="px-6 py-4">
                       <span className={`px-3 py-1.5 rounded-full text-xs font-medium border ${config.color}`}>
                         {config.label}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-500">{order.date}</td>
+                    <td className="px-6 py-4 text-sm text-slate-500">{new Date(order.created_at).toLocaleString()}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <motion.button

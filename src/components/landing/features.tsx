@@ -45,33 +45,33 @@ const features = [
 
 export function Features() {
   return (
-    <section id="features" className="relative py-24 lg:py-32 bg-gradient-to-b from-white to-slate-50">
+    <section id="features" className="relative py-16 sm:py-20 lg:py-32 bg-gradient-to-b from-white to-slate-50">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <FadeIn className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900">
+        <FadeIn className="max-w-3xl mx-auto text-center mb-10 sm:mb-16">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900">
             Everything you need for
             <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-2">
               seamless account access
             </span>
           </h2>
-          <p className="mt-6 text-lg sm:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto">
+          <p className="mt-4 sm:mt-6 text-sm sm:text-base lg:text-lg sm:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto">
             Get premium, verified logins for all your favorite platforms with fast delivery, full support, and complete peace of mind.
           </p>
         </FadeIn>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 lg:gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, i) => (
             <FadeIn key={feature.title} delay={i * 0.1}>
               <motion.div
                 whileHover={{ y: -8 }}
                 transition={{ duration: 0.3 }}
-                className="group h-full p-8 rounded-3xl bg-white border border-slate-200/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300"
+                className="group h-full p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/50 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300"
               >
-                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 group-hover:from-blue-100 group-hover:to-indigo-100 transition-colors duration-300">
-                  <feature.icon className="h-7 w-7 text-blue-600" strokeWidth={1.5} />
+                <div className="mb-4 sm:mb-6 flex h-10 w-10 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 group-hover:from-blue-100 group-hover:to-indigo-100 transition-colors duration-300">
+                  <feature.icon className="h-5 w-5 sm:h-7 sm:w-7 text-blue-600" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-3">{feature.title}</h3>
-                <p className="text-base leading-relaxed text-slate-600">
+                <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-slate-900 mb-2 sm:mb-3">{feature.title}</h3>
+                <p className="text-sm sm:text-base leading-relaxed text-slate-600">
                   {feature.description}
                 </p>
               </motion.div>

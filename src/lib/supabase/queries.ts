@@ -5,19 +5,21 @@ const supabase = createClient();
 // Dashboard Stats
 export async function getDashboardStats() {
   const [
-    { count: totalRevenue },
+    { data: revenueData },
     { count: totalOrders },
     { count: totalCustomers },
     { count: totalAccounts },
   ] = await Promise.all([
-    supabase.from('revenue').select('*', { count: 'exact', head: true }),
+    supabase.from('revenue').select('amount_cents'),
     supabase.from('orders').select('*', { count: 'exact', head: true }),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('accounts').select('*', { count: 'exact', head: true }),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
+    supabase.from('accounts').select('*', { count: 'exact', head: true }).eq('status', 'available'),
   ]);
 
+  const totalRevenue = revenueData?.reduce((sum, r) => sum + (r.amount_cents || 0), 0) || 0;
+
   return {
-    totalRevenue: totalRevenue || 0,
+    totalRevenue,
     totalOrders: totalOrders || 0,
     totalCustomers: totalCustomers || 0,
     totalAccounts: totalAccounts || 0,
@@ -31,7 +33,7 @@ export async function getRecentOrders(limit = 10) {
     .select(`
       *,
       customer:profiles!orders_customer_id_fkey (full_name, email),
-      account:accounts!orders_account_id_fkey (platform, username, price_cents)
+      account:accounts!orders_account_id_fkey (platform, username, price_cents, currency)
     `)
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -47,7 +49,7 @@ export async function getRevenueByDate(days = 7) {
 
   const { data, error } = await supabase
     .from('revenue')
-    .select('*')
+    .select('amount_cents, date, platform')
     .gte('date', startDate.toISOString().split('T')[0])
     .order('date', { ascending: true });
 
@@ -69,10 +71,11 @@ export async function getPlatformDistribution() {
     return acc;
   }, {} as Record<string, number>) || {};
 
+  const total = data?.length || 1;
   return Object.entries(distribution).map(([platform, count]) => ({
     platform,
     count,
-    percentage: Math.round((count / (data?.length || 1)) * 100),
+    percentage: Math.round((count / total) * 100),
   }));
 }
 
@@ -88,7 +91,7 @@ export async function getOrders(filters?: {
     .select(`
       *,
       customer:profiles!orders_customer_id_fkey (full_name, email),
-      account:accounts!orders_account_id_fkey (platform, username, price_cents)
+      account:accounts!orders_account_id_fkey (platform, username, price_cents, currency)
     `)
     .order('created_at', { ascending: false });
 
@@ -217,6 +220,17 @@ export async function createOrder(orderData: {
     .single();
 
   if (error) throw error;
+  
+  // Create revenue record
+  if (data) {
+    await supabase.from('revenue').insert({
+      order_id: data.id,
+      amount_cents: orderData.amount_cents,
+      currency: orderData.currency || 'USD',
+      date: new Date().toISOString().split('T')[0],
+    });
+  }
+  
   return data;
 }
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Menu, X } from "lucide-react";
 
 const links = [
   { label: "How it works", href: "#how-it-works" },
@@ -13,9 +14,10 @@ const links = [
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => setScrolled(window.scrollY > 20);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -23,51 +25,93 @@ export function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-colors duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-white/90 backdrop-blur-md border-b border-slate-200"
-          : "bg-transparent border-b border-transparent"
+          ? "bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm"
+          : "bg-transparent border-transparent"
       }`}
     >
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 lg:px-8">
-        <Link href="/" className="flex items-center gap-2">
-          <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
-            <circle cx="13" cy="13" r="12" stroke="#1E3A8A" strokeWidth="2" />
-            <path d="M13 7v12M9 10l4-3 4 3M9 16c0 1.7 1.8 3 4 3s4-1.3 4-3" stroke="#1E3A8A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className="text-lg font-semibold tracking-tight text-[#1E3A8A]">TrustedAccounts</span>
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
+            <div className="relative bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg p-2">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+            TrustedAccounts
+          </span>
         </Link>
 
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-10 md:flex">
           {links.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-slate-600 transition-colors hover:text-[#1E3A8A]"
+              className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 relative group"
             >
               {link.label}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 group-hover:w-full transition-all duration-300"></span>
             </a>
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <Link
             href="/login"
-            className="hidden text-sm font-medium text-slate-600 transition-colors hover:text-[#1E3A8A] sm:block"
+            className="hidden text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 sm:block"
           >
             Sign in
           </Link>
-          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Link href="/signup">
               <Button
-                className="bg-[#1E3A8A] text-white hover:bg-[#1E40AF] rounded-full px-5"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 rounded-full px-6 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all"
               >
                 Get Started
               </Button>
             </Link>
           </motion.div>
+          <button
+            className="md:hidden p-2 text-slate-600 hover:text-slate-900"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </nav>
+
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="md:hidden bg-white/95 backdrop-blur-xl border-b border-slate-200/50"
+        >
+          <div className="px-6 py-4 space-y-4">
+            {links.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="block text-sm font-medium text-slate-600 hover:text-slate-900"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {link.label}
+              </a>
+            ))}
+            <Link
+              href="/login"
+              className="block text-sm font-medium text-slate-600 hover:text-slate-900"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Sign in
+            </Link>
+          </div>
+        </motion.div>
+      )}
     </header>
   );
 }

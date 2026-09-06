@@ -3,13 +3,15 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import { Search, Mail, Phone, MapPin, MoreVertical, Calendar } from "lucide-react";
-import { getCustomers } from "@/lib/supabase/queries";
+import { Plus } from "lucide-react";
+import { DataTable } from "@/components/dashboard/data-table";
+import { Modal } from "@/components/dashboard/modal";
+import { getCustomers, updateCustomerStatus, deleteCustomer } from "@/lib/supabase/queries";
 
 const statusConfig = {
-  active: { label: "Active", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-  inactive: { label: "Inactive", color: "bg-slate-100 text-slate-700 border-slate-200" },
-  suspended: { label: "Suspended", color: "bg-red-100 text-red-700 border-red-200" },
+  active: { label: "Active", color: "bg-emerald-100 text-emerald-700" },
+  inactive: { label: "Inactive", color: "bg-slate-100 text-slate-700" },
+  suspended: { label: "Suspended", color: "bg-red-100 text-red-700" },
 };
 
 function formatCurrency(cents: number) {
@@ -19,9 +21,11 @@ function formatCurrency(cents: number) {
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<any>(null);
+  const [newStatus, setNewStatus] = useState<"active" | "inactive" | "suspended">("active");
 
   useEffect(() => {
     async function loadCustomers() {
@@ -37,13 +41,41 @@ export default function CustomersPage() {
     loadCustomers();
   }, []);
 
-  const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = customer.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.id?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || customer.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const handleUpdateStatus = (customer: any) => {
+    setSelectedCustomer(customer);
+    setNewStatus(customer.status || 'active');
+    setStatusModalOpen(true);
+  };
+
+  const handleDelete = (customer: any) => {
+    setDeleteConfirm(customer);
+  };
+
+  const confirmStatusUpdate = async () => {
+    if (selectedCustomer) {
+      try {
+        const updated = await updateCustomerStatus(selectedCustomer.id, newStatus);
+        setCustomers(customers.map(c => c.id === selectedCustomer.id ? { ...c, status: newStatus } : c));
+        setStatusModalOpen(false);
+      } catch (error) {
+        console.error('Error updating customer status:', error);
+        alert('Failed to update customer status');
+      }
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfirm) {
+      try {
+        await deleteCustomer(deleteConfirm.id);
+        setCustomers(customers.filter(c => c.id !== deleteConfirm.id));
+        setDeleteConfirm(null);
+      } catch (error) {
+        console.error('Error deleting customer:', error);
+        alert('Failed to delete customer');
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -55,6 +87,56 @@ export default function CustomersPage() {
     );
   }
 
+  const columns = [
+    {
+      key: "full_name",
+      label: "Name",
+      sortable: true,
+    },
+    {
+      key: "email",
+      label: "Email",
+      sortable: true,
+    },
+    {
+      key: "phone",
+      label: "Phone",
+      sortable: true,
+      render: (value: string) => value || 'N/A',
+    },
+    {
+      key: "customer_analytics",
+      label: "Total Orders",
+      sortable: true,
+      render: (value: any) => value?.total_orders || 0,
+    },
+    {
+      key: "customer_analytics",
+      label: "Total Spent",
+      sortable: true,
+      render: (value: any) => formatCurrency(value?.total_spent_cents || 0),
+    },
+    {
+      key: "created_at",
+      label: "Joined",
+      sortable: true,
+      render: (value: string) => new Date(value).toLocaleDateString(),
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      render: (value: string) => {
+        const config = statusConfig[value as keyof typeof statusConfig];
+        return (
+          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${config.color}`}>
+            {config.label}
+          </span>
+        );
+      },
+    },
+  ];
+
   return (
     <DashboardLayout>
       {/* Header */}
@@ -65,189 +147,95 @@ export default function CustomersPage() {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-[#1E3A8A]">Customers</h1>
-            <p className="text-slate-500 mt-1">Manage your customer base and their orders</p>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Customers
+            </h1>
+            <p className="text-slate-500 mt-1">Manage your customer base</p>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 px-4 py-2 bg-[#1E3A8A] text-white rounded-lg font-medium shadow-lg shadow-[#1E3A8A]/20"
+        </div>
+      </motion.div>
+
+      {/* Data Table */}
+      <DataTable
+        data={customers}
+        columns={columns}
+        onEdit={handleUpdateStatus}
+        onDelete={handleDelete}
+        searchable
+      />
+
+      {/* Status Update Modal */}
+      <Modal
+        isOpen={statusModalOpen}
+        onClose={() => setStatusModalOpen(false)}
+        title="Update Customer Status"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-slate-600">
+            Update status for <strong>{selectedCustomer?.full_name}</strong>
+          </p>
+          <select
+            value={newStatus}
+            onChange={(e) => setNewStatus(e.target.value as any)}
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           >
-            <Mail size={18} />
-            Email All
-          </motion.button>
-        </div>
-      </motion.div>
-
-      {/* Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6"
-      >
-        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Total Customers</p>
-              <p className="text-3xl font-bold text-[#1E3A8A] mt-1">{customers.length}</p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-[#1E3A8A]/10 flex items-center justify-center">
-              <span className="text-2xl">👥</span>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Active</p>
-              <p className="text-3xl font-bold text-emerald-600 mt-1">
-                {customers.filter(c => c.status === "active").length}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
-              <span className="text-2xl">✓</span>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Total Revenue</p>
-              <p className="text-3xl font-bold text-[#1E3A8A] mt-1">
-                {formatCurrency(customers.reduce((acc, c) => acc + (c.customer_analytics?.total_spent_cents || 0), 0))}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-[#1E3A8A]/10 flex items-center justify-center">
-              <span className="text-2xl">💰</span>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Avg. Orders</p>
-              <p className="text-3xl font-bold text-slate-600 mt-1">
-                {customers.length > 0 ? Math.round(customers.reduce((acc, c) => acc + (c.customer_analytics?.total_orders || 0), 0) / customers.length) : 0}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
-              <span className="text-2xl">📊</span>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 mb-6"
-      >
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search customers by name, email, or ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A] transition-all"
-            />
-          </div>
-          <div className="flex gap-3">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A] transition-all appearance-none bg-white cursor-pointer"
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="suspended">Suspended</option>
+          </select>
+          <div className="flex gap-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setStatusModalOpen(false)}
+              className="flex-1 px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
             >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+              Cancel
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={confirmStatusUpdate}
+              className="flex-1 px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/25"
+            >
+              Update
+            </motion.button>
           </div>
         </div>
-      </motion.div>
+      </Modal>
 
-      {/* Customers Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        title="Delete Customer"
+        size="sm"
       >
-        {filteredCustomers.map((customer, index) => {
-          const config = statusConfig[customer.status as keyof typeof statusConfig];
-          
-          return (
-            <motion.div
-              key={customer.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.4 + index * 0.05 }}
-              whileHover={{ y: -4, scale: 1.02 }}
-              className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 hover:shadow-xl hover:shadow-slate-200/70 transition-all duration-300 group"
+        <div className="space-y-4">
+          <p className="text-slate-600">
+            Are you sure you want to delete the customer <strong>{deleteConfirm?.full_name}</strong>? This action cannot be undone.
+          </p>
+          <div className="flex gap-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setDeleteConfirm(null)}
+              className="flex-1 px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#1E3A8A] to-[#1E40AF] flex items-center justify-center shadow-lg shadow-[#1E3A8A]/20">
-                    <span className="text-white font-bold text-lg">
-                      {(customer.full_name || 'U').charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-700">{customer.full_name || 'Unknown'}</p>
-                    <p className="text-sm text-slate-500">{customer.email}</p>
-                  </div>
-                </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${config.color}`}>
-                  {config.label}
-                </span>
-              </div>
-
-              <div className="space-y-3 mb-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone size={16} className="text-slate-400" />
-                  <span className="text-slate-700">{customer.phone || 'N/A'}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar size={16} className="text-slate-400" />
-                  <span className="text-slate-700">Joined {new Date(customer.created_at).toLocaleDateString()}</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-[#1E3A8A]">{customer.customer_analytics?.total_orders || 0}</p>
-                  <p className="text-xs text-slate-500">Orders</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-[#1E3A8A]">{formatCurrency(customer.customer_analytics?.total_spent_cents || 0)}</p>
-                  <p className="text-xs text-slate-500">Total Spent</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-100">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex-1 px-3 py-2 rounded-lg bg-[#1E3A8A] text-white text-sm font-medium hover:bg-[#1E40AF] transition-colors"
-                >
-                  View Details
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
-                >
-                  <MoreVertical size={16} />
-                </motion.button>
-              </div>
-            </motion.div>
-          );
-        })}
-      </motion.div>
+              Cancel
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={confirmDelete}
+              className="flex-1 px-6 py-3 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold hover:from-red-600 hover:to-red-700 transition-all shadow-lg shadow-red-500/25"
+            >
+              Delete
+            </motion.button>
+          </div>
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 }

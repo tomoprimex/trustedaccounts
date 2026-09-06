@@ -365,19 +365,6 @@ export async function updateAccountStatus(accountId: string, status: 'available'
   return data;
 }
 
-// Update Order Status
-export async function updateOrderStatus(orderId: string, status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded') {
-  const { data, error } = await supabase
-    .from('orders')
-    .update({ status })
-    .eq('id', orderId)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
 // Get User Profile
 export async function getUserProfile() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -411,4 +398,290 @@ export async function updateUserProfile(updates: {
 
   if (error) throw error;
   return data;
+}
+
+// Create Account
+export async function createAccount(accountData: {
+  platform: string;
+  username: string;
+  email: string;
+  password?: string;
+  phone?: string;
+  two_fa_link?: string;
+  price_cents: number;
+  currency?: string;
+  description?: string;
+}) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  const { data, error } = await supabase
+    .from('accounts')
+    .insert({
+      seller_id: user.id,
+      status: 'available',
+      currency: accountData.currency || 'NGN',
+      ...accountData,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+// Update Account
+export async function updateAccount(accountId: string, updates: {
+  platform?: string;
+  username?: string;
+  email?: string;
+  password?: string;
+  phone?: string;
+  two_fa_link?: string;
+  price_cents?: number;
+  currency?: string;
+  description?: string;
+  status?: 'available' | 'reserved' | 'sold' | 'removed';
+}) {
+  const { data, error } = await supabase
+    .from('accounts')
+    .update(updates)
+    .eq('id', accountId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+// Delete Account
+export async function deleteAccount(accountId: string) {
+  const { error } = await supabase
+    .from('accounts')
+    .delete()
+    .eq('id', accountId);
+
+  if (error) throw error;
+}
+
+// Update Customer Status
+export async function updateCustomerStatus(customerId: string, status: 'active' | 'inactive' | 'suspended') {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ status })
+    .eq('id', customerId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+// Delete Customer
+export async function deleteCustomer(customerId: string) {
+  const { error } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('id', customerId);
+
+  if (error) throw error;
+}
+
+// Delete Order
+export async function deleteOrder(orderId: string) {
+  const { error } = await supabase
+    .from('orders')
+    .delete()
+    .eq('id', orderId);
+
+  if (error) throw error;
+}
+
+// Update Order Status
+export async function updateOrderStatus(orderId: string, status: 'completed' | 'pending' | 'processing' | 'failed' | 'refunded') {
+  const { data, error } = await supabase
+    .from('orders')
+    .update({ status })
+    .eq('id', orderId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+// Get Admin Analytics
+export async function getAdminAnalytics() {
+  const [
+    { data: revenueData },
+    { data: ordersData },
+    { count: totalAccounts },
+    { count: totalCustomers },
+    { count: totalSellers },
+  ] = await Promise.all([
+    supabase.from('revenue').select('amount_cents, date'),
+    supabase.from('orders').select('created_at, status'),
+    supabase.from('accounts').select('*', { count: 'exact', head: true }),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'seller'),
+  ]);
+
+  const totalRevenue = revenueData?.reduce((sum, r) => sum + (r.amount_cents || 0), 0) || 0;
+  const totalOrders = ordersData?.length || 0;
+  
+  // Calculate revenue by month for trends
+  const monthlyRevenue = new Array(12).fill(0);
+  revenueData?.forEach(r => {
+    const month = new Date(r.date).getMonth();
+    monthlyRevenue[month] += r.amount_cents || 0;
+  });
+
+  // Get top platforms
+  const { data: platformData } = await supabase
+    .from('accounts')
+    .select('platform')
+    .eq('status', 'sold');
+
+  const platformCounts = platformData?.reduce((acc: any, curr: any) => {
+    acc[curr.platform] = (acc[curr.platform] || 0) + 1;
+    return acc;
+  }, {});
+
+  const topPlatforms = Object.entries(platformCounts || {})
+    .map(([platform, count]) => ({ platform, count }))
+    .sort((a: any, b: any) => b.count - a.count)
+    .slice(0, 5);
+
+  return {
+    totalRevenue,
+    totalOrders,
+    totalAccounts,
+    totalCustomers,
+    totalSellers,
+    monthlyRevenue,
+    topPlatforms,
+  };
+}
+
+// Get Top Platforms
+export async function getTopPlatforms(limit = 5) {
+  const { data, error } = await supabase
+    .from('accounts')
+    .select('platform')
+    .eq('status', 'sold');
+
+  if (error) throw error;
+
+  const platformCounts = data?.reduce((acc, account) => {
+    acc[account.platform] = (acc[account.platform] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>) || {};
+
+  return Object.entries(platformCounts)
+    .map(([platform, count]) => ({ platform, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
+
+// Get Recent Activity
+export async function getRecentActivity(limit = 10) {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      customer:profiles!orders_customer_id_fkey (full_name),
+      account:accounts!orders_account_id_fkey (platform)
+    `)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data;
+}
+
+// Websites CRUD Operations
+export async function getWebsites({ limit = 50, offset = 0 }: { limit?: number; offset?: number } = {}) {
+  const { data, error } = await supabase
+    .from('websites')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) throw error;
+  return data;
+}
+
+export async function getWebsiteById(websiteId: string) {
+  const { data, error } = await supabase
+    .from('websites')
+    .select('*')
+    .eq('id', websiteId)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+// Marketplace - Get accounts for sale (without sensitive info)
+export async function getMarketplaceAccounts({ limit = 50, offset = 0 }: { limit?: number; offset?: number } = {}) {
+  const { data, error } = await supabase
+    .from('accounts')
+    .select('id, platform, username, email, price_cents, currency, status, description, created_at')
+    .eq('status', 'available')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) throw error;
+  return data;
+}
+
+// Get purchased accounts for a user (with full details)
+export async function getPurchasedAccounts(userId: string) {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      account:accounts(*)
+    `)
+    .eq('customer_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
+// Create a purchase (create order and mark account as sold)
+export async function createPurchase(userId: string, accountId: string) {
+  // Get account details
+  const { data: account } = await supabase
+    .from('accounts')
+    .select('*')
+    .eq('id', accountId)
+    .single();
+
+  if (!account) throw new Error('Account not found');
+
+  // Create order
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .insert({
+      customer_id: userId,
+      account_id: accountId,
+      amount_cents: account.price_cents,
+      currency: account.currency,
+      status: 'completed',
+      delivery_status: 'delivered',
+    })
+    .select()
+    .single();
+
+  if (orderError) throw orderError;
+  
+  // Mark account as sold
+  await supabase
+    .from('accounts')
+    .update({ status: 'sold' })
+    .eq('id', accountId);
+
+  return order;
 }

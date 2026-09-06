@@ -3,15 +3,17 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import { Search, Filter, Download, Eye, MoreVertical } from "lucide-react";
-import { getOrders } from "@/lib/supabase/queries";
+import { Download } from "lucide-react";
+import { DataTable } from "@/components/dashboard/data-table";
+import { Modal } from "@/components/dashboard/modal";
+import { getOrders, updateOrderStatus, deleteOrder } from "@/lib/supabase/queries";
 
 const statusConfig = {
-  completed: { label: "Completed", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-  pending: { label: "Pending", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  processing: { label: "Processing", color: "bg-blue-100 text-blue-700 border-blue-200" },
-  failed: { label: "Failed", color: "bg-red-100 text-red-700 border-red-200" },
-  refunded: { label: "Refunded", color: "bg-slate-100 text-slate-700 border-slate-200" },
+  completed: { label: "Completed", color: "bg-emerald-100 text-emerald-700" },
+  pending: { label: "Pending", color: "bg-amber-100 text-amber-700" },
+  processing: { label: "Processing", color: "bg-blue-100 text-blue-700" },
+  failed: { label: "Failed", color: "bg-red-100 text-red-700" },
+  refunded: { label: "Refunded", color: "bg-slate-100 text-slate-700" },
 };
 
 function formatCurrency(cents: number, currency: string) {
@@ -24,9 +26,11 @@ function formatCurrency(cents: number, currency: string) {
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<any>(null);
+  const [newStatus, setNewStatus] = useState<"completed" | "pending" | "processing" | "failed" | "refunded">("pending");
 
   useEffect(() => {
     async function loadOrders() {
@@ -42,13 +46,41 @@ export default function OrdersPage() {
     loadOrders();
   }, []);
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.customer?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.order_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customer?.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const handleUpdateStatus = (order: any) => {
+    setSelectedOrder(order);
+    setNewStatus(order.status || 'pending');
+    setStatusModalOpen(true);
+  };
+
+  const handleDelete = (order: any) => {
+    setDeleteConfirm(order);
+  };
+
+  const confirmStatusUpdate = async () => {
+    if (selectedOrder) {
+      try {
+        const updated = await updateOrderStatus(selectedOrder.id, newStatus);
+        setOrders(orders.map(o => o.id === selectedOrder.id ? { ...o, status: newStatus } : o));
+        setStatusModalOpen(false);
+      } catch (error) {
+        console.error('Error updating order status:', error);
+        alert('Failed to update order status');
+      }
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfirm) {
+      try {
+        await deleteOrder(deleteConfirm.id);
+        setOrders(orders.filter(o => o.id !== deleteConfirm.id));
+        setDeleteConfirm(null);
+      } catch (error) {
+        console.error('Error deleting order:', error);
+        alert('Failed to delete order');
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -60,6 +92,61 @@ export default function OrdersPage() {
     );
   }
 
+  const columns = [
+    {
+      key: "order_number",
+      label: "Order ID",
+      sortable: true,
+    },
+    {
+      key: "customer",
+      label: "Customer",
+      sortable: true,
+      render: (value: any) => value?.full_name || 'Unknown',
+    },
+    {
+      key: "customer",
+      label: "Email",
+      sortable: true,
+      render: (value: any) => value?.email || 'N/A',
+    },
+    {
+      key: "account",
+      label: "Platform",
+      sortable: true,
+      render: (value: any) => (
+        <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 capitalize">
+          {value?.platform || 'N/A'}
+        </span>
+      ),
+    },
+    {
+      key: "amount_cents",
+      label: "Amount",
+      sortable: true,
+      render: (value: number, row: any) => formatCurrency(value, row.currency),
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      render: (value: string) => {
+        const config = statusConfig[value as keyof typeof statusConfig];
+        return (
+          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${config.color}`}>
+            {config.label}
+          </span>
+        );
+      },
+    },
+    {
+      key: "created_at",
+      label: "Date",
+      sortable: true,
+      render: (value: string) => new Date(value).toLocaleDateString(),
+    },
+  ];
+
   return (
     <DashboardLayout>
       {/* Header */}
@@ -70,158 +157,105 @@ export default function OrdersPage() {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-[#1E3A8A]">Orders</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Orders
+            </h1>
             <p className="text-slate-500 mt-1">Manage and track all customer orders</p>
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 px-4 py-2 bg-[#1E3A8A] text-white rounded-lg font-medium shadow-lg shadow-[#1E3A8A]/20"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all"
           >
-            <Download size={18} />
+            <Download size={20} />
             Export
           </motion.button>
         </div>
       </motion.div>
 
-      {/* Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 mb-6"
-      >
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search orders by customer, email, or order ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A] transition-all"
-            />
-          </div>
-          <div className="flex gap-3">
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="pl-10 pr-8 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A] transition-all appearance-none bg-white cursor-pointer"
-              >
-                <option value="all">All Status</option>
-                <option value="completed">Completed</option>
-                <option value="pending">Pending</option>
-                <option value="processing">Processing</option>
-                <option value="failed">Failed</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </motion.div>
+      {/* Data Table */}
+      <DataTable
+        data={orders}
+        columns={columns}
+        onEdit={handleUpdateStatus}
+        onDelete={handleDelete}
+        searchable
+      />
 
-      {/* Orders Table */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 overflow-hidden"
+      {/* Status Update Modal */}
+      <Modal
+        isOpen={statusModalOpen}
+        onClose={() => setStatusModalOpen(false)}
+        title="Update Order Status"
+        size="sm"
       >
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Order ID</th>
-                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer</th>
-                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Platform</th>
-                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Amount</th>
-                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredOrders.map((order, index) => {
-                const config = statusConfig[order.status as keyof typeof statusConfig];
-                
-                return (
-                  <motion.tr
-                    key={order.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: 0.3 + index * 0.05 }}
-                    className="hover:bg-slate-50/50 transition-colors group"
-                  >
-                    <td className="px-6 py-4">
-                      <span className="font-semibold text-[#1E3A8A] group-hover:text-[#1E40AF] transition-colors">
-                        {order.order_number}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="font-medium text-slate-700">{order.customer?.full_name || 'Unknown'}</p>
-                        <p className="text-sm text-slate-500">{order.customer?.email || 'N/A'}</p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                        {order.account?.platform || 'N/A'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-slate-900">{formatCurrency(order.amount_cents, order.currency)}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-medium border ${config.color}`}>
-                        {config.label}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-500">{new Date(order.created_at).toLocaleString()}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="p-2 rounded-lg bg-slate-100 hover:bg-[#1E3A8A] hover:text-white text-slate-600 transition-colors"
-                        >
-                          <Eye size={16} />
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
-                        >
-                          <MoreVertical size={16} />
-                        </motion.button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/30 flex items-center justify-between">
-          <p className="text-sm text-slate-500">
-            Showing {filteredOrders.length} of {orders.length} orders
+        <div className="space-y-4">
+          <p className="text-slate-600">
+            Update status for order <strong>{selectedOrder?.order_number}</strong>
           </p>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors text-sm font-medium">
-              Previous
-            </button>
-            <button className="px-4 py-2 rounded-lg bg-[#1E3A8A] text-white text-sm font-medium">
-              1
-            </button>
-            <button className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors text-sm font-medium">
-              2
-            </button>
-            <button className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors text-sm font-medium">
-              Next
-            </button>
+          <select
+            value={newStatus}
+            onChange={(e) => setNewStatus(e.target.value as any)}
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          >
+            <option value="pending">Pending</option>
+            <option value="processing">Processing</option>
+            <option value="completed">Completed</option>
+            <option value="failed">Failed</option>
+            <option value="refunded">Refunded</option>
+          </select>
+          <div className="flex gap-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setStatusModalOpen(false)}
+              className="flex-1 px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
+            >
+              Cancel
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={confirmStatusUpdate}
+              className="flex-1 px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/25"
+            >
+              Update
+            </motion.button>
           </div>
         </div>
-      </motion.div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        title="Delete Order"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-slate-600">
+            Are you sure you want to delete the order <strong>{deleteConfirm?.order_number}</strong>? This action cannot be undone.
+          </p>
+          <div className="flex gap-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setDeleteConfirm(null)}
+              className="flex-1 px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
+            >
+              Cancel
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={confirmDelete}
+              className="flex-1 px-6 py-3 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold hover:from-red-600 hover:to-red-700 transition-all shadow-lg shadow-red-500/25"
+            >
+              Delete
+            </motion.button>
+          </div>
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 }

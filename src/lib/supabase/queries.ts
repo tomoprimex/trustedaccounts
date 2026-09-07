@@ -661,10 +661,14 @@ export async function createPurchase(userId: string, accountId: string) {
 
   if (!account) throw new Error('Account not found');
 
+  // Generate order number
+  const orderNum = `ORD-${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+
   // Create order
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert({
+      order_number: orderNum,
       customer_id: userId,
       account_id: accountId,
       amount_cents: account.price_cents,

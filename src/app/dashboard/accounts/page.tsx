@@ -3,89 +3,43 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import { Plus } from "lucide-react";
-import { DataTable } from "@/components/dashboard/data-table";
-import { Modal } from "@/components/dashboard/modal";
-import { AccountForm } from "@/components/dashboard/account-form";
-import { getAccounts, createAccount, updateAccount, deleteAccount } from "@/lib/supabase/queries";
+import { getPurchasedAccounts } from "@/lib/supabase/queries";
+import { createClient } from "@/lib/supabase/client";
+import { Eye, EyeOff, Copy } from "lucide-react";
 
-const statusConfig = {
-  available: { label: "Available", color: "bg-emerald-100 text-emerald-700" },
-  sold: { label: "Sold", color: "bg-slate-100 text-slate-700" },
-  reserved: { label: "Reserved", color: "bg-amber-100 text-amber-700" },
-  removed: { label: "Removed", color: "bg-red-100 text-red-700" },
-};
-
-function formatCurrency(cents: number, currency: string) {
-  const amount = cents / 100;
-  if (currency === 'NGN') {
-    return `₦${amount.toLocaleString()}`;
-  }
-  return `$${amount.toLocaleString()}`;
-}
+const supabase = createClient();
 
 export default function AccountsPage() {
-  const [accounts, setAccounts] = useState<any[]>([]);
+  const [purchases, setPurchases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingAccount, setEditingAccount] = useState<any>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<any>(null);
+  const [visibleCredentials, setVisibleCredentials] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    async function loadAccounts() {
+    async function loadPurchasedAccounts() {
       try {
-        const data = await getAccounts({ limit: 100 });
-        setAccounts(data || []);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const data = await getPurchasedAccounts(user.id);
+          setPurchases(data || []);
+        }
       } catch (error) {
-        console.error('Error loading accounts:', error);
+        console.error('Error loading purchased accounts:', error);
       } finally {
         setLoading(false);
       }
     }
-    loadAccounts();
+    loadPurchasedAccounts();
   }, []);
 
-  const handleCreate = () => {
-    setEditingAccount(null);
-    setModalOpen(true);
+  const toggleVisibility = (purchaseId: string) => {
+    setVisibleCredentials(prev => ({
+      ...prev,
+      [purchaseId]: !prev[purchaseId]
+    }));
   };
 
-  const handleEdit = (account: any) => {
-    setEditingAccount(account);
-    setModalOpen(true);
-  };
-
-  const handleDelete = (account: any) => {
-    setDeleteConfirm(account);
-  };
-
-  const confirmDelete = async () => {
-    if (deleteConfirm) {
-      try {
-        await deleteAccount(deleteConfirm.id);
-        setAccounts(accounts.filter(a => a.id !== deleteConfirm.id));
-        setDeleteConfirm(null);
-      } catch (error) {
-        console.error('Error deleting account:', error);
-        alert('Failed to delete account');
-      }
-    }
-  };
-
-  const handleFormSubmit = async (data: any) => {
-    try {
-      if (editingAccount) {
-        const updated = await updateAccount(editingAccount.id, data);
-        setAccounts(accounts.map(a => a.id === editingAccount.id ? updated : a));
-      } else {
-        const created = await createAccount(data);
-        setAccounts([created, ...accounts]);
-      }
-      setModalOpen(false);
-    } catch (error) {
-      console.error('Error saving account:', error);
-      alert('Failed to save account');
-    }
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
   };
 
   if (loading) {
@@ -98,54 +52,6 @@ export default function AccountsPage() {
     );
   }
 
-  const columns = [
-    {
-      key: "platform",
-      label: "Platform",
-      sortable: true,
-      render: (value: string) => (
-        <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 capitalize">
-          {value}
-        </span>
-      ),
-    },
-    {
-      key: "username",
-      label: "Username",
-      sortable: true,
-    },
-    {
-      key: "email",
-      label: "Email",
-      sortable: true,
-    },
-    {
-      key: "price_cents",
-      label: "Price",
-      sortable: true,
-      render: (value: number, row: any) => formatCurrency(value, row.currency),
-    },
-    {
-      key: "status",
-      label: "Status",
-      sortable: true,
-      render: (value: string) => {
-        const config = statusConfig[value as keyof typeof statusConfig];
-        return (
-          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${config.color}`}>
-            {config.label}
-          </span>
-        );
-      },
-    },
-    {
-      key: "created_at",
-      label: "Created",
-      sortable: true,
-      render: (value: string) => new Date(value).toLocaleDateString(),
-    },
-  ];
-
   return (
     <DashboardLayout>
       {/* Header */}
@@ -154,79 +60,136 @@ export default function AccountsPage() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Accounts
-            </h1>
-            <p className="text-slate-500 mt-1">Manage your account inventory</p>
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleCreate}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all"
-          >
-            <Plus size={20} />
-            Add Account
-          </motion.button>
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            My Purchased Accounts
+          </h1>
+          <p className="text-slate-500 mt-1">View and manage your purchased account credentials</p>
         </div>
       </motion.div>
 
-      {/* Data Table */}
-      <DataTable
-        data={accounts}
-        columns={columns}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        searchable
-      />
+      {/* Purchased Accounts List */}
+      {purchases.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-12 text-center"
+        >
+          <p className="text-slate-500 text-lg">No purchased accounts yet</p>
+          <p className="text-slate-400 text-sm mt-2">Visit the marketplace to purchase accounts</p>
+        </motion.div>
+      ) : (
+        <div className="space-y-4">
+          {purchases.map((purchase, index) => {
+            const account = purchase.account;
+            const isVisible = visibleCredentials[purchase.id];
 
-      {/* Create/Edit Modal */}
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={editingAccount ? "Edit Account" : "Add New Account"}
-        size="lg"
-      >
-        <AccountForm
-          account={editingAccount}
-          onSubmit={handleFormSubmit}
-          onCancel={() => setModalOpen(false)}
-        />
-      </Modal>
+            return (
+              <motion.div
+                key={purchase.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+                className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-xl text-slate-800">{account.username}</h3>
+                    <p className="text-sm text-slate-500">{account.email}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 capitalize">
+                        {account.platform}
+                      </span>
+                      <span className="text-sm text-slate-400">
+                        Purchased on {new Date(purchase.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={!!deleteConfirm}
-        onClose={() => setDeleteConfirm(null)}
-        title="Delete Account"
-        size="sm"
-      >
-      <div className="space-y-4">
-        <p className="text-slate-600">
-          Are you sure you want to delete the account <strong>{deleteConfirm?.username}</strong>? This action cannot be undone.
-        </p>
-        <div className="flex gap-4">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setDeleteConfirm(null)}
-            className="flex-1 px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
-          >
-            Cancel
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={confirmDelete}
-            className="flex-1 px-6 py-3 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold hover:from-red-600 hover:to-red-700 transition-all shadow-lg shadow-red-500/25"
-          >
-            Delete
-          </motion.button>
+                <div className="border-t border-slate-200 pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-semibold text-slate-700">Account Credentials</p>
+                    <button
+                      onClick={() => toggleVisibility(purchase.id)}
+                      className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                    >
+                      {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {isVisible ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+
+                  {isVisible && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="space-y-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-slate-500 w-16">Email:</span>
+                        <div className="flex-1 flex items-center gap-2">
+                          <span className="text-sm font-medium text-slate-800 bg-slate-100 px-3 py-1 rounded-lg flex-1">{account.email}</span>
+                          <button
+                            onClick={() => copyToClipboard(account.email)}
+                            className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
+                          >
+                            <Copy size={16} className="text-slate-500" />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {account.password && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-slate-500 w-16">Password:</span>
+                          <div className="flex-1 flex items-center gap-2">
+                            <span className="text-sm font-medium text-slate-800 bg-slate-100 px-3 py-1 rounded-lg flex-1">{account.password}</span>
+                            <button
+                              onClick={() => copyToClipboard(account.password)}
+                              className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
+                            >
+                              <Copy size={16} className="text-slate-500" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {account.recovery_phone && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-slate-500 w-16">Phone:</span>
+                          <div className="flex-1 flex items-center gap-2">
+                            <span className="text-sm font-medium text-slate-800 bg-slate-100 px-3 py-1 rounded-lg flex-1">{account.recovery_phone}</span>
+                            <button
+                              onClick={() => copyToClipboard(account.recovery_phone)}
+                              className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
+                            >
+                              <Copy size={16} className="text-slate-500" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {account.two_factor_secret && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-slate-500 w-16">2FA:</span>
+                          <div className="flex-1 flex items-center gap-2">
+                            <span className="text-sm font-medium text-slate-800 bg-slate-100 px-3 py-1 rounded-lg flex-1">{account.two_factor_secret}</span>
+                            <button
+                              onClick={() => copyToClipboard(account.two_factor_secret)}
+                              className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
+                            >
+                              <Copy size={16} className="text-slate-500" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
-      </div>
-      </Modal>
+      )}
     </DashboardLayout>
   );
 }

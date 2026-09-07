@@ -6,6 +6,7 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Search, ShoppingCart, Shield } from "lucide-react";
 import { getMarketplaceAccounts, createPurchase } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/client";
+import { PaystackPayment } from "@/components/payment/paystack-payment";
 
 const supabase = createClient();
 
@@ -14,6 +15,9 @@ export default function MarketplacePage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [user, setUser] = useState<any>(null);
+  const [selectedAccount, setSelectedAccount] = useState<any>(null);
+  const [showPayment, setShowPayment] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -32,22 +36,35 @@ export default function MarketplacePage() {
     loadData();
   }, []);
 
-  const handlePurchase = async (websiteId: string) => {
+  const handlePurchase = (account: any) => {
     if (!user) {
       alert('Please login to purchase');
       return;
     }
 
-    if (confirm('Are you sure you want to purchase this account?')) {
-      try {
-        await createPurchase(user.id, websiteId);
-        alert('Purchase successful! You can now view the credentials in your dashboard.');
-        setAccounts(accounts.filter(a => a.id !== websiteId));
-      } catch (error) {
-        console.error('Error purchasing website:', error);
-        alert('Failed to purchase website');
-      }
+    setSelectedAccount(account);
+    setShowPayment(true);
+  };
+
+  const handlePaymentSuccess = async (reference: string) => {
+    setProcessing(true);
+    try {
+      await createPurchase(user.id, selectedAccount.id);
+      alert('Purchase successful! You can now view the credentials in your dashboard.');
+      setAccounts(accounts.filter(a => a.id !== selectedAccount.id));
+      setShowPayment(false);
+      setSelectedAccount(null);
+    } catch (error) {
+      console.error('Error completing purchase:', error);
+      alert('Failed to complete purchase');
+    } finally {
+      setProcessing(false);
     }
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPayment(false);
+    setSelectedAccount(null);
   };
 
   const filteredAccounts = accounts.filter(account =>
@@ -136,8 +153,9 @@ export default function MarketplacePage() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => handlePurchase(account.id)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/25"
+                onClick={() => handlePurchase(account)}
+                disabled={processing}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ShoppingCart size={18} />
                 Purchase
@@ -152,6 +170,17 @@ export default function MarketplacePage() {
           </div>
         )}
       </motion.div>
+
+      {/* Payment Modal */}
+      {showPayment && selectedAccount && user && (
+        <PaystackPayment
+          amount={selectedAccount.price_cents}
+          email={user.email}
+          onSuccess={handlePaymentSuccess}
+          onClose={handlePaymentCancel}
+          onCancel={handlePaymentCancel}
+        />
+      )}
     </DashboardLayout>
   );
 }

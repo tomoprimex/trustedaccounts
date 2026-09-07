@@ -19,9 +19,9 @@ import {
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", id: "dashboard" },
-  { icon: ShoppingCart, label: "Orders", href: "/dashboard/orders", id: "orders" },
+  { icon: ShoppingCart, label: "Marketplace", href: "/marketplace", id: "marketplace" },
   { icon: Key, label: "My Accounts", href: "/dashboard/accounts", id: "accounts" },
-  { icon: Users, label: "Customers", href: "/dashboard/customers", id: "customers" },
+  { icon: ShoppingCart, label: "Orders", href: "/dashboard/orders", id: "orders" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings", id: "settings" },
 ];
 

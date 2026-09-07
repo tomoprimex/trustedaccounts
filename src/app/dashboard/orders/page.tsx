@@ -105,10 +105,10 @@ export default function OrdersPage() {
       render: (value: any) => value?.full_name || 'Unknown',
     },
     {
-      key: "customer",
+      key: "customer_email",
       label: "Email",
       sortable: true,
-      render: (value: any) => value?.email || 'N/A',
+      render: (value: any, row: any) => row.customer?.email || 'N/A',
     },
     {
       key: "account",

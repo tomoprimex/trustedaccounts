@@ -2,6 +2,18 @@ import { createClient } from "./client";
 
 const supabase = createClient();
 
+// Get all users (admin only)
+export async function getUsers(options?: { limit?: number }) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(options?.limit || 50);
+
+  if (error) throw error;
+  return data;
+}
+
 // Dashboard Stats
 export async function getDashboardStats() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -652,7 +664,7 @@ export async function getPurchasedAccounts(userId: string) {
 
 // Create a purchase (create order and mark account as sold)
 export async function createPurchase(userId: string, accountId: string) {
-  // Get account details
+  // Get account details and check if still available
   const { data: account } = await supabase
     .from('accounts')
     .select('*')
@@ -660,6 +672,7 @@ export async function createPurchase(userId: string, accountId: string) {
     .single();
 
   if (!account) throw new Error('Account not found');
+  if (account.status !== 'available') throw new Error('This account is no longer available');
 
   // Generate order number
   const orderNum = `ORD-${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
@@ -672,7 +685,7 @@ export async function createPurchase(userId: string, accountId: string) {
       customer_id: userId,
       account_id: accountId,
       amount_cents: account.price_cents,
-      currency: account.currency,
+      currency: 'NGN',
       status: 'completed',
       delivery_status: 'delivered',
     })
@@ -682,10 +695,12 @@ export async function createPurchase(userId: string, accountId: string) {
   if (orderError) throw orderError;
   
   // Mark account as sold
-  await supabase
+  const { error: updateError } = await supabase
     .from('accounts')
     .update({ status: 'sold' })
     .eq('id', accountId);
+
+  if (updateError) throw updateError;
 
   return order;
 }

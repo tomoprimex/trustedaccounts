@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Globe, 
-  Users, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Globe,
+  Users,
+  Settings,
   LogOut,
   Menu,
-  X
+  X,
 } from "lucide-react";
 
 const navigation = [
@@ -21,95 +21,176 @@ const navigation = [
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
+// Design tokens — kept local so the palette is easy to retune in one place.
+const tokens = {
+  ink: "#14161A",
+  inkLine: "#2A2E35",
+  paper: "#F6F5F1",
+  line: "#E4E1D9",
+  accent: "#3E6B5C",
+  accentSoft: "#DCE8E3",
+  text: "#14161A",
+  textMuted: "#8A8D93",
+};
+
+const SIDEBAR_WIDTH = 288; // px, matches w-72
+
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const activeItem = navigation.find((item) => item.href === pathname);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      {/* Mobile sidebar backdrop */}
-      {sidebarOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-        />
-      )}
+    <div
+      className="min-h-screen"
+      style={{
+        background: tokens.paper,
+        fontFamily: "'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif",
+      }}
+    >
+      {/*
+        Mobile-only backdrop. `lg:hidden` fully removes it from the tree on
+        desktop so it can never intercept clicks or affect layout there.
+      */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 z-40 lg:hidden"
+            style={{ background: "rgba(20,22,26,0.55)" }}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Sidebar */}
-      <motion.aside
-        initial={{ x: -300 }}
-        animate={{ x: sidebarOpen ? 0 : -300 }}
-        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-        className={`fixed top-0 left-0 z-50 h-full w-72 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-2xl lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      {/*
+        Sidebar is ALWAYS position:fixed (no lg:static swap) and its open/closed
+        state is expressed purely with Tailwind's `translate-x-*` classes, not
+        an animated inline style. That way `lg:translate-x-0` is free to win
+        the cascade at desktop widths no matter what `sidebarOpen` is set to.
+      */}
+      <aside
+        className={`fixed top-0 left-0 z-50 h-full w-72 transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0`}
+        style={{ background: tokens.ink }}
       >
         <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center justify-between px-6 py-6 border-b border-slate-700">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Admin Panel
-            </h1>
+          {/* Wordmark */}
+          <div
+            className="flex items-center justify-between px-6 py-6"
+            style={{ borderBottom: `1px solid ${tokens.inkLine}` }}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="flex items-center justify-center w-8 h-8"
+                style={{ background: tokens.accent, borderRadius: 4 }}
+              >
+                <span className="text-sm font-semibold" style={{ color: tokens.paper }}>
+                  A
+                </span>
+              </div>
+              <span className="text-lg font-medium tracking-tight" style={{ color: tokens.paper }}>
+                Admin
+              </span>
+            </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden text-slate-400 hover:text-white"
+              className="lg:hidden"
+              style={{ color: tokens.textMuted }}
+              aria-label="Close menu"
             >
-              <X size={24} />
+              <X size={20} />
             </button>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href;
-              const Icon = item.icon;
-              
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                    isActive
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25"
-                      : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                  }`}
-                >
-                  <Icon size={20} />
-                  <span className="font-medium">{item.name}</span>
-                </Link>
-              );
-            })}
+          <nav className="flex-1 px-3 py-6">
+            <ul className="space-y-1">
+              {navigation.map((item) => {
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
+
+                return (
+                  <li key={item.name} className="relative">
+                    <Link
+                      href={item.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className="relative flex items-center gap-3 pl-4 pr-4 py-2.5 transition-colors duration-150"
+                      style={{
+                        color: isActive ? tokens.paper : tokens.textMuted,
+                      }}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="active-rail"
+                          className="absolute left-0 top-0 h-full"
+                          style={{ width: 3, background: tokens.accent }}
+                          transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                        />
+                      )}
+                      <Icon size={18} strokeWidth={1.75} />
+                      <span className="text-sm font-medium">{item.name}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
           </nav>
 
           {/* Logout */}
-          <div className="px-4 pb-6">
-            <button className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all duration-200">
-              <LogOut size={20} />
-              <span className="font-medium">Logout</span>
+          <div className="px-3 pb-6">
+            <button
+              className="flex items-center gap-3 w-full pl-4 pr-4 py-2.5 transition-colors duration-150 hover:text-white"
+              style={{ color: tokens.textMuted }}
+            >
+              <LogOut size={18} strokeWidth={1.75} />
+              <span className="text-sm font-medium">Log out</span>
             </button>
           </div>
         </div>
-      </motion.aside>
+      </aside>
 
-      {/* Main content */}
-      <div className="lg:ml-72">
+      {/*
+        Content column. The `lg:ml-72` offset always matches a sidebar that is
+        always physically present (fixed + translate-x-0) at that breakpoint,
+        so there's no scenario where the margin exists but the sidebar doesn't
+        (or vice versa) — that mismatch was what pushed content off to the
+        bottom-right before.
+      */}
+      <div className="lg:ml-72 min-h-screen flex flex-col">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200 px-6 py-2">
+        <header
+          className="sticky top-0 z-30 px-6 py-4"
+          style={{ background: tokens.paper, borderBottom: `1px solid ${tokens.line}` }}
+        >
           <div className="flex items-center justify-between">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-slate-600 hover:text-slate-900"
-            >
-              <Menu size={24} />
-            </button>
-            <div className="flex-1 lg:flex-none">
-              <h2 className="text-xl font-semibold text-slate-800">
-                {navigation.find((item) => item.href === pathname)?.name || "Admin"}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden"
+                style={{ color: tokens.text }}
+                aria-label="Open menu"
+              >
+                <Menu size={22} />
+              </button>
+              <h2 className="text-lg font-medium tracking-tight" style={{ color: tokens.text }}>
+                {activeItem?.name ?? "Admin"}
               </h2>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-semibold">
+
+            <div className="flex items-center gap-3">
+              <div
+                className="flex items-center justify-center w-8 h-8 text-xs font-medium"
+                style={{
+                  background: tokens.accentSoft,
+                  color: tokens.accent,
+                  borderRadius: 4,
+                  fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+                }}
+              >
                 A
               </div>
             </div>
@@ -117,7 +198,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page content */}
-        <main>{children}</main>
+        <main className="flex-1 px-6 py-8">{children}</main>
       </div>
     </div>
   );

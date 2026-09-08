@@ -23,12 +23,9 @@ const statusConfig = {
   failed: { icon: XCircle, color: "text-red-600", bg: "bg-red-100" },
 };
 
-function formatCurrency(cents: number, currency: string) {
+function formatCurrency(cents: number) {
   const amount = cents / 100;
-  if (currency === 'NGN') {
-    return `₦${amount.toLocaleString()}`;
-  }
-  return `$${amount.toLocaleString()}`;
+  return `₦${amount.toLocaleString()}`;
 }
 
 function formatRelativeTime(dateString: string) {
@@ -94,7 +91,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
                 <p className="text-xs sm:text-sm font-medium text-slate-900">{order.customer.full_name || 'Unknown'}</p>
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <span>{order.account.platform}</span>
-                  <span className="font-semibold">{formatCurrency(order.account.price_cents, order.account.currency)}</span>
+                  <span className="font-semibold">{formatCurrency(order.account.price_cents)}</span>
                 </div>
                 <p className="text-xs text-slate-400">{formatRelativeTime(order.created_at)}</p>
               </div>
@@ -147,7 +144,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
                       {order.account.platform}
                     </span>
                   </td>
-                  <td className="px-3 sm:px-4 sm:px-6 py-2 sm:py-3 sm:py-4 font-semibold text-slate-900">{formatCurrency(order.account.price_cents, order.account.currency)}</td>
+                  <td className="px-3 sm:px-4 sm:px-6 py-2 sm:py-3 sm:py-4 font-semibold text-slate-900">{formatCurrency(order.account.price_cents)}</td>
                   <td className="px-3 sm:px-4 sm:px-6 py-2 sm:py-3 sm:py-4">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${config.bg} ${config.color}`}>
                       <StatusIcon size={14} />

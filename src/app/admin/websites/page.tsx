@@ -28,7 +28,7 @@ export default function WebsitesPage() {
     recovery_phone: "",
     two_factor_secret: "",
     price_cents: "",
-    currency: "USD",
+    currency: "NGN",
     description: "",
     status: "available" as "available" | "reserved" | "sold" | "removed",
   });

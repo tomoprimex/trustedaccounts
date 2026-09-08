@@ -27,6 +27,7 @@ export function AccountForm({ account, onSubmit, onCancel }: AccountFormProps) {
     onSubmit({
       ...formData,
       price_cents: Math.round(Number(formData.price_cents) * 100),
+      currency: "NGN",
     });
   };
 
@@ -118,19 +119,6 @@ export function AccountForm({ account, onSubmit, onCancel }: AccountFormProps) {
             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             placeholder="15000"
           />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-2">Currency</label>
-          <select
-            value={formData.currency}
-            onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-          >
-            <option value="NGN">NGN (₦)</option>
-            <option value="USD">USD ($)</option>
-            <option value="EUR">EUR (€)</option>
-          </select>
         </div>
       </div>
 

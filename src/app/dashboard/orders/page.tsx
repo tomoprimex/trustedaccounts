@@ -16,12 +16,9 @@ const statusConfig = {
   refunded: { label: "Refunded", color: "bg-slate-100 text-slate-700" },
 };
 
-function formatCurrency(cents: number, currency: string) {
+function formatCurrency(cents: number) {
   const amount = cents / 100;
-  if (currency === 'NGN') {
-    return `₦${amount.toLocaleString()}`;
-  }
-  return `$${amount.toLocaleString()}`;
+  return `₦${amount.toLocaleString()}`;
 }
 
 export default function OrdersPage() {
@@ -124,7 +121,7 @@ export default function OrdersPage() {
       key: "amount_cents",
       label: "Amount",
       sortable: true,
-      render: (value: number, row: any) => formatCurrency(value, row.currency),
+      render: (value: number) => formatCurrency(value),
     },
     {
       key: "status",

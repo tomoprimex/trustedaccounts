@@ -180,7 +180,7 @@ export default function SettingsPage() {
                         <input
                           type="text"
                           value={item.value}
-                          onChange={(e) => item.onChange(e.target.value)}
+                          onChange={(e) => item.onChange?.(e.target.value)}
                           className="w-24 px-2 py-1 bg-white/50 backdrop-blur border border-white/30 rounded-lg text-[9px] text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
                         />
                       )}
@@ -188,7 +188,7 @@ export default function SettingsPage() {
                       {item.type === 'toggle' && (
                         <motion.button
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => item.onChange()}
+                          onClick={() => (item as { onChange: () => void }).onChange()}
                           className={`w-8 h-4 rounded-full p-0.5 transition-colors flex-shrink-0 ${
                             item.value ? "bg-gradient-to-r from-blue-900 to-indigo-900" : "bg-slate-300"
                           }`}

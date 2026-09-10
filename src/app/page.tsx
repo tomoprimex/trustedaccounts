@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Sparkles, Shield, ShoppingCart, TrendingUp, ChevronRight, Menu, X } from "lucide-react";

@@ -142,7 +142,7 @@ export default function AdminSettingsPage() {
                           <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 rounded-2xl border border-blue-100/50 backdrop-blur-sm">
                             <div>
                               <h3 className="font-medium text-slate-800">{field.label}</h3>
-                              <p className="text-sm text-slate-500">{field.description}</p>
+                              {field.type === 'toggle' && <p className="text-sm text-slate-500">{(field as { type: string; description: string }).description}</p>}
                             </div>
                             <button
                               onClick={() => setSettings({ ...settings, [field.key]: !settings[field.key as keyof typeof settings] })}
@@ -165,8 +165,8 @@ export default function AdminSettingsPage() {
                             <textarea
                               value={settings[field.key as keyof typeof settings] as string}
                               onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
-                              rows={field.rows || 3}
-                              placeholder={field.placeholder}
+                              rows={'rows' in field ? field.rows : 3}
+                              placeholder={'placeholder' in field ? field.placeholder : ''}
                               className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all resize-none"
                             />
                           </div>
@@ -179,7 +179,7 @@ export default function AdminSettingsPage() {
                               type={field.type}
                               value={settings[field.key as keyof typeof settings] as string}
                               onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
-                              placeholder={field.placeholder}
+                              placeholder={'placeholder' in field ? field.placeholder : ''}
                               className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
                             />
                           </div>

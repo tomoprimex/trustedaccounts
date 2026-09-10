@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function LibraryItemPage({
@@ -28,33 +29,9 @@ export default async function LibraryItemPage({
     .maybeSingle();
 
   if (!texts) {
-    return (
-      <main style={{ maxWidth: 700, margin: "40px auto", padding: 16 }}>
-        <h1>{website.name}</h1>
-        <p>You have not purchased this account recovery pack yet.</p>
-      </main>
-    );
+    return <main className="min-h-screen bg-[#f5f7fb] px-3 py-8 sm:px-6 sm:py-12"><div className="app-surface mx-auto max-w-2xl p-6"><h1 className="app-page-title">{website.name}</h1><p className="mt-3 text-sm text-slate-500">You have not purchased this account recovery pack yet.</p></div></main>;
   }
 
-  return (
-    <main style={{ maxWidth: 700, margin: "40px auto", padding: 16 }}>
-      <h1>{website.name} - Account Recovery Details</h1>
-      <section style={{ marginBottom: 24 }}>
-        <h2>Email</h2>
-        <pre style={{ background: "#f5f5f5", padding: 12, borderRadius: 4 }}>{texts.email}</pre>
-      </section>
-      <section style={{ marginBottom: 24 }}>
-        <h2>Phone Number</h2>
-        <pre style={{ background: "#f5f5f5", padding: 12, borderRadius: 4 }}>{texts.phone_number}</pre>
-      </section>
-      <section style={{ marginBottom: 24 }}>
-        <h2>2FA Link</h2>
-        <pre style={{ background: "#f5f5f5", padding: 12, borderRadius: 4 }}>{texts.two_factor_link}</pre>
-      </section>
-      <section style={{ marginBottom: 24 }}>
-        <h2>Password</h2>
-        <pre style={{ background: "#f5f5f5", padding: 12, borderRadius: 4 }}>{texts.password}</pre>
-      </section>
-    </main>
-  );
+  const details = [["Email", texts.email], ["Phone number", texts.phone_number], ["2FA link", texts.two_factor_link], ["Password", texts.password]];
+  return <main className="min-h-screen bg-[#f5f7fb] px-3 py-8 sm:px-6 sm:py-12"><div className="mx-auto max-w-2xl"><Link href="/library" className="text-xs font-bold text-blue-600">← Back to library</Link><div className="mb-6 mt-5"><p className="text-[10px] font-bold uppercase tracking-[.16em] text-blue-600">Private purchase</p><h1 className="mt-2 text-2xl font-extrabold tracking-[-.06em] text-[#0a2342]">{website.name}</h1><p className="mt-2 text-xs text-slate-500">Keep these recovery details private.</p></div><div className="space-y-3">{details.map(([label, value]) => <section key={label} className="app-surface p-4"><h2 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</h2><pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all rounded-lg bg-slate-50 p-3 text-xs font-medium text-[#0a2342]">{value}</pre></section>)}</div></div></main>;
 }

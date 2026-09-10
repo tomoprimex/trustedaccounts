@@ -3,12 +3,21 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import { Search, ShoppingCart, Shield } from "lucide-react";
+import { Search, ShoppingCart, Shield, Sparkles, ChevronRight } from "lucide-react";
 import { getMarketplaceAccounts, createPurchase } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/client";
 import { PaystackPayment } from "@/components/payment/paystack-payment";
 
 const supabase = createClient();
+
+const platformIcons: Record<string, string> = {
+  facebook: "📘",
+  instagram: "📷",
+  youtube: "📺",
+  tiktok: "🎵",
+  twitter: "🐦",
+  linkedin: "💼",
+};
 
 export default function MarketplacePage() {
   const [accounts, setAccounts] = useState<any[]>([]);
@@ -76,7 +85,7 @@ export default function MarketplacePage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900"></div>
         </div>
       </DashboardLayout>
     );
@@ -84,97 +93,121 @@ export default function MarketplacePage() {
 
   return (
     <DashboardLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="p-6"
-      >
+      <div className="space-y-3 px-2 sm:px-4">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-3"
+        >
+          <div className="flex items-center gap-2 mb-1">
+            <div className="p-1.5 bg-gradient-to-br from-blue-900 to-indigo-900 rounded-lg">
+              <ShoppingCart size={14} className="text-white" />
+            </div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-indigo-900 bg-clip-text text-transparent">
               Marketplace
             </h1>
-            <p className="text-slate-500 mt-1">Browse and purchase verified social media accounts</p>
           </div>
-        </div>
+          <p className="text-xs text-slate-500">Browse and purchase verified accounts</p>
+        </motion.div>
 
         {/* Search */}
-        <div className="mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search by email or phone..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-            />
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-indigo-900/10 rounded-xl blur-md" />
+            <div className="relative flex items-center gap-2 bg-white/80 backdrop-blur-xl rounded-xl p-2 border border-white/30 shadow-sm">
+              <Search size={12} className="text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search accounts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1 bg-transparent border-none outline-none text-[10px] text-slate-800 placeholder:text-slate-400"
+              />
+            </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Accounts Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-2 gap-2"
+        >
           {filteredAccounts.map((account, index) => (
             <motion.div
               key={account.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 hover:shadow-xl transition-all"
+              transition={{ delay: 0.15 + index * 0.02 }}
+              className="relative"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg text-slate-800">{account.username}</h3>
-                  <p className="text-sm text-slate-500 mt-1">{account.email}</p>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-indigo-900/10 rounded-xl blur-md" />
+              <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2 border border-white/30 shadow-sm">
+                {/* Platform Icon */}
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-900 to-indigo-900 flex items-center justify-center text-sm mb-2">
+                  {platformIcons[account.platform] || "🌐"}
                 </div>
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                  Available
-                </span>
-              </div>
 
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-slate-500">Platform:</span>
-                  <span className="font-medium text-slate-700 capitalize">{account.platform}</span>
+                {/* Account Info */}
+                <div className="mb-2">
+                  <h3 className="text-[10px] font-bold text-slate-900 truncate">{account.username}</h3>
+                  <p className="text-[8px] text-slate-500 truncate">{account.email}</p>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-slate-500">Price:</span>
-                  <span className="font-medium text-slate-700">${(account.price_cents / 100).toFixed(2)}</span>
+
+                {/* Price */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[8px] text-slate-500">Price:</span>
+                  <span className="text-[10px] font-bold text-slate-900">₦{(account.price_cents / 100).toLocaleString()}</span>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-2 text-xs text-slate-400 mb-4">
-                <Shield size={14} />
-                <span>Credentials revealed after purchase</span>
-              </div>
+                {/* Security Badge */}
+                <div className="flex items-center gap-1 mb-2 text-[8px] text-slate-400">
+                  <Shield size={8} />
+                  <span className="truncate">Verified</span>
+                </div>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handlePurchase(account)}
-                disabled={processing}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ShoppingCart size={18} />
-                Purchase
-              </motion.button>
+                {/* Purchase Button */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handlePurchase(account)}
+                  disabled={processing}
+                  className="w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-lg text-[9px] font-medium shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ShoppingCart size={8} />
+                  Buy
+                </motion.button>
+              </div>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
 
+        {/* Empty State */}
         {filteredAccounts.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-slate-500">No accounts available in marketplace</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-white/30 text-center"
+          >
+            <div className="p-2 bg-blue-50 rounded-full w-fit mx-auto mb-2">
+              <ShoppingCart size={20} className="text-blue-900" />
+            </div>
+            <p className="text-xs text-slate-500">No accounts available</p>
+            <p className="text-[10px] text-slate-400 mt-1">Check back later for new listings</p>
+          </motion.div>
         )}
-      </motion.div>
+      </div>
 
       {/* Payment Modal */}
       {showPayment && selectedAccount && user && (
         <PaystackPayment
-          amount={selectedAccount.price_cents}
+          amount={selectedAccount.price_cents / 100}
           email={user.email}
           onSuccess={handlePaymentSuccess}
           onClose={handlePaymentCancel}

@@ -23,7 +23,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
     if (!acc[dayName]) {
       acc[dayName] = { revenue: 0, orders: 0 };
     }
-    acc[dayName].revenue += item.amount_cents;
+    acc[dayName].revenue += item.amount_cents / 100; // Convert cents to Naira
     acc[dayName].orders += 1;
     
     return acc;

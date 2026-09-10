@@ -5,9 +5,18 @@ import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { getPurchasedAccounts } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/client";
-import { Eye, EyeOff, Copy } from "lucide-react";
+import { Eye, EyeOff, Copy, Key, Package, Sparkles } from "lucide-react";
 
 const supabase = createClient();
+
+const platformIcons: Record<string, string> = {
+  facebook: "📘",
+  instagram: "📷",
+  youtube: "📺",
+  tiktok: "🎵",
+  twitter: "🐦",
+  linkedin: "💼",
+};
 
 export default function AccountsPage() {
   const [purchases, setPurchases] = useState<any[]>([]);
@@ -46,7 +55,7 @@ export default function AccountsPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E3A8A]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900"></div>
         </div>
       </DashboardLayout>
     );
@@ -54,142 +63,154 @@ export default function AccountsPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            My Purchased Accounts
-          </h1>
-          <p className="text-slate-500 mt-1">View and manage your purchased account credentials</p>
-        </div>
-      </motion.div>
-
-      {/* Purchased Accounts List */}
-      {purchases.length === 0 ? (
+      <div className="space-y-3 px-2 sm:px-4">
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-12 text-center"
+          className="mb-3"
         >
-          <p className="text-slate-500 text-lg">No purchased accounts yet</p>
-          <p className="text-slate-400 text-sm mt-2">Visit the marketplace to purchase accounts</p>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="p-1.5 bg-gradient-to-br from-blue-900 to-indigo-900 rounded-lg">
+              <Package size={14} className="text-white" />
+            </div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-indigo-900 bg-clip-text text-transparent">
+              My Accounts
+            </h1>
+          </div>
+          <p className="text-xs text-slate-500">View and manage your purchased account credentials</p>
         </motion.div>
-      ) : (
-        <div className="space-y-4">
-          {purchases.map((purchase, index) => {
-            const account = purchase.account;
-            const isVisible = visibleCredentials[purchase.id];
 
-            return (
-              <motion.div
-                key={purchase.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-                className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="font-bold text-xl text-slate-800">{account.username}</h3>
-                    <p className="text-sm text-slate-500">{account.email}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 capitalize">
+        {/* Empty State */}
+        {purchases.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-white/30 text-center"
+          >
+            <div className="p-2 bg-blue-50 rounded-full w-fit mx-auto mb-2">
+              <Key size={20} className="text-blue-900" />
+            </div>
+            <p className="text-xs text-slate-500">No purchased accounts yet</p>
+            <p className="text-[10px] text-slate-400 mt-1">Visit the marketplace to purchase accounts</p>
+          </motion.div>
+        ) : (
+          <div className="space-y-2">
+            {purchases.map((purchase, index) => {
+              const account = purchase.account;
+              const isVisible = visibleCredentials[purchase.id];
+
+              return (
+                <motion.div
+                  key={purchase.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="relative"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-indigo-900/10 rounded-xl blur-md" />
+                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-white/30 shadow-sm">
+                    {/* Card Header */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-900 to-indigo-900 flex items-center justify-center text-sm flex-shrink-0">
+                        {platformIcons[account.platform] || "🌐"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-[11px] font-bold text-slate-900 truncate">{account.username}</h3>
+                        <p className="text-[9px] text-slate-500 truncate">{account.email}</p>
+                      </div>
+                      <div className="px-1.5 py-0.5 rounded-md bg-gradient-to-r from-blue-900 to-indigo-900 text-white text-[8px] font-bold flex-shrink-0 capitalize">
                         {account.platform}
-                      </span>
-                      <span className="text-sm text-slate-400">
-                        Purchased on {new Date(purchase.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+
+                    {/* Credentials Toggle */}
+                    <div className="flex items-center justify-between mb-2">
+                      <button
+                        onClick={() => toggleVisibility(purchase.id)}
+                        className="flex items-center gap-1 text-[10px] text-blue-900 font-medium"
+                      >
+                        {isVisible ? <EyeOff size={10} /> : <Eye size={10} />}
+                        {isVisible ? 'Hide' : 'Show'} Credentials
+                      </button>
+                      <span className="text-[8px] text-slate-400">
+                        {new Date(purchase.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                  </div>
-                </div>
 
-                <div className="border-t border-slate-200 pt-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm font-semibold text-slate-700">Account Credentials</p>
-                    <button
-                      onClick={() => toggleVisibility(purchase.id)}
-                      className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                    >
-                      {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
-                      {isVisible ? 'Hide' : 'Show'}
-                    </button>
+                    {/* Credentials */}
+                    {isVisible && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="space-y-1.5 pt-2 border-t border-slate-100"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[8px] text-slate-500 w-8">Email:</span>
+                          <div className="flex-1 flex items-center gap-1 min-w-0">
+                            <span className="text-[9px] font-medium text-slate-800 bg-slate-50 px-1.5 py-0.5 rounded truncate flex-1">{account.email}</span>
+                            <button
+                              onClick={() => copyToClipboard(account.email)}
+                              className="p-0.5 hover:bg-slate-100 rounded transition-colors flex-shrink-0"
+                            >
+                              <Copy size={8} className="text-slate-400" />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {account.password && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[8px] text-slate-500 w-8">Pass:</span>
+                            <div className="flex-1 flex items-center gap-1 min-w-0">
+                              <span className="text-[9px] font-medium text-slate-800 bg-slate-50 px-1.5 py-0.5 rounded truncate flex-1">{account.password}</span>
+                              <button
+                                onClick={() => copyToClipboard(account.password)}
+                                className="p-0.5 hover:bg-slate-100 rounded transition-colors flex-shrink-0"
+                              >
+                                <Copy size={8} className="text-slate-400" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {account.recovery_phone && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[8px] text-slate-500 w-8">Phone:</span>
+                            <div className="flex-1 flex items-center gap-1 min-w-0">
+                              <span className="text-[9px] font-medium text-slate-800 bg-slate-50 px-1.5 py-0.5 rounded truncate flex-1">{account.recovery_phone}</span>
+                              <button
+                                onClick={() => copyToClipboard(account.recovery_phone)}
+                                className="p-0.5 hover:bg-slate-100 rounded transition-colors flex-shrink-0"
+                              >
+                                <Copy size={8} className="text-slate-400" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {account.two_factor_secret && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[8px] text-slate-500 w-8">2FA:</span>
+                            <div className="flex-1 flex items-center gap-1 min-w-0">
+                              <span className="text-[9px] font-medium text-slate-800 bg-slate-50 px-1.5 py-0.5 rounded truncate flex-1">{account.two_factor_secret}</span>
+                              <button
+                                onClick={() => copyToClipboard(account.two_factor_secret)}
+                                className="p-0.5 hover:bg-slate-100 rounded transition-colors flex-shrink-0"
+                              >
+                                <Copy size={8} className="text-slate-400" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
                   </div>
-
-                  {isVisible && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="space-y-3"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-500 w-16">Email:</span>
-                        <div className="flex-1 flex items-center gap-2">
-                          <span className="text-sm font-medium text-slate-800 bg-slate-100 px-3 py-1 rounded-lg flex-1">{account.email}</span>
-                          <button
-                            onClick={() => copyToClipboard(account.email)}
-                            className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
-                          >
-                            <Copy size={16} className="text-slate-500" />
-                          </button>
-                        </div>
-                      </div>
-                      
-                      {account.password && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-slate-500 w-16">Password:</span>
-                          <div className="flex-1 flex items-center gap-2">
-                            <span className="text-sm font-medium text-slate-800 bg-slate-100 px-3 py-1 rounded-lg flex-1">{account.password}</span>
-                            <button
-                              onClick={() => copyToClipboard(account.password)}
-                              className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
-                            >
-                              <Copy size={16} className="text-slate-500" />
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {account.recovery_phone && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-slate-500 w-16">Phone:</span>
-                          <div className="flex-1 flex items-center gap-2">
-                            <span className="text-sm font-medium text-slate-800 bg-slate-100 px-3 py-1 rounded-lg flex-1">{account.recovery_phone}</span>
-                            <button
-                              onClick={() => copyToClipboard(account.recovery_phone)}
-                              className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
-                            >
-                              <Copy size={16} className="text-slate-500" />
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {account.two_factor_secret && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-slate-500 w-16">2FA:</span>
-                          <div className="flex-1 flex items-center gap-2">
-                            <span className="text-sm font-medium text-slate-800 bg-slate-100 px-3 py-1 rounded-lg flex-1">{account.two_factor_secret}</span>
-                            <button
-                              onClick={() => copyToClipboard(account.two_factor_secret)}
-                              className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
-                            >
-                              <Copy size={16} className="text-slate-500" />
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </DashboardLayout>
   );
 }

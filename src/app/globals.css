@@ -14,6 +14,9 @@ body {
 
 body {
   min-height: 100%;
+  background: #f5f7fb;
+  color: #10233f;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -27,4 +30,101 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #bfdbfe;
+  color: #0a2342;
+}
+
+@layer components {
+  .app-surface {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 12px 30px rgba(15, 35, 65, 0.06);
+  }
+
+  .app-page-title {
+    color: #0a2342;
+    font-size: clamp(1.35rem, 2vw, 1.8rem);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+  }
+
+  .app-page-subtitle {
+    color: #64748b;
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+
+  .app-input {
+    min-height: 40px;
+    border: 1px solid #dbe3ef;
+    border-radius: 9px;
+    background: #fff;
+    color: #10233f;
+    font-size: 0.78rem;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .app-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
+  }
+
+  .auth-shell label {
+    color: #334155 !important;
+  }
+
+  .auth-shell input {
+    border-color: #dbe3ef !important;
+    background: #fff !important;
+    color: #10233f !important;
+  }
+
+  .auth-shell input::placeholder {
+    color: #94a3b8 !important;
+  }
+
+  .auth-shell form svg {
+    color: #94a3b8 !important;
+  }
+
+  .auth-shell form button[type="submit"] {
+    background: #0a2342 !important;
+    color: #fff !important;
+    box-shadow: 0 10px 24px rgba(10, 35, 66, 0.16) !important;
+  }
+
+  .auth-shell form a,
+  .auth-shell form p,
+  .auth-shell h3 {
+    color: #64748b !important;
+  }
+
+  .auth-shell form a:hover {
+    color: #2563eb !important;
+  }
 }

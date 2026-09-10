@@ -17,7 +17,7 @@ export function AccountForm({ account, onSubmit, onCancel }: AccountFormProps) {
     password: account?.password || "",
     phone: account?.phone || "",
     two_fa_link: account?.two_fa_link || "",
-    price_cents: account?.price_cents ? account.price_cents / 100 : "",
+    price_cents: account?.price_cents ? (account.price_cents / 100).toString() : "",
     currency: account?.currency || "NGN",
     description: account?.description || "",
   });

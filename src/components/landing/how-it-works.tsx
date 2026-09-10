@@ -1,89 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { CreditCard, Search, ShieldCheck, ShoppingCart, Timer } from "lucide-react";
 import { FadeIn } from "./fade-in";
-import { Search, ShoppingCart, CreditCard, Rocket } from "lucide-react";
 
 const steps = [
-  {
-    icon: Search,
-    title: "Choose your platform",
-    description:
-      "Browse our available accounts and select the platform you need - Facebook, YouTube, Instagram, TikTok, and more.",
-  },
-  {
-    icon: ShoppingCart,
-    title: "Select your plan",
-    description:
-      "Pick a single account or save with a bundle. All accounts are verified and ready to use.",
-  },
-  {
-    icon: CreditCard,
-    title: "Complete purchase",
-    description:
-      "Secure payment processing with instant delivery. Your login credentials are sent immediately after payment.",
-  },
-  {
-    icon: Rocket,
-    title: "Start using your account",
-    description:
-      "Log in and start using your new account right away. Our support team is available 24/7 if you need help.",
-  },
+  { icon: Search, label: "Explore", title: "Choose your platform", copy: "Browse available listings for Instagram, YouTube, TikTok, Facebook, and more." },
+  { icon: ShieldCheck, label: "Review", title: "Check the details", copy: "See the platform, verification status, seller-set price, and availability before purchase." },
+  { icon: CreditCard, label: "Purchase", title: "Pay securely", copy: "Complete your checkout through our secure payment flow in Nigerian naira." },
+  { icon: Timer, label: "Receive", title: "Get instant access", copy: "Your credentials are delivered to your account after successful payment." },
 ];
 
 export function HowItWorks() {
-  return (
-    <section id="how-it-works" className="relative py-16 sm:py-20 lg:py-32 bg-white">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <FadeIn className="max-w-3xl mx-auto text-center mb-10 sm:mb-16">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900">
-            Get your login in
-            <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-2">
-              four simple steps
-            </span>
-          </h2>
-          <p className="mt-4 sm:mt-6 text-sm sm:text-base lg:text-lg sm:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto">
-            From selection to delivery in minutes. Instant access to verified accounts.
-          </p>
-        </FadeIn>
-
-        <div className="relative mt-10 sm:mt-16">
-          <div className="grid gap-6 sm:gap-8 lg:grid-cols-4">
-            {steps.map((step, i) => (
-              <FadeIn key={step.title} delay={i * 0.1}>
-                <motion.div
-                  whileHover={{ y: -8 }}
-                  transition={{ duration: 0.3 }}
-                  className="relative group"
-                >
-                  <div className="flex flex-col items-center text-center">
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-2xl blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 group-hover:from-blue-100 group-hover:to-indigo-100 transition-colors flex items-center justify-center border border-blue-100">
-                        <step.icon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" strokeWidth={1.5} />
-                      </div>
-                      <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs sm:text-sm">
-                        {i + 1}
-                      </div>
-                    </div>
-                    <h3 className="mt-3 sm:mt-4 text-sm sm:text-base lg:text-lg font-semibold text-slate-900">
-                      {step.title}
-                    </h3>
-                    <p className="mt-2 sm:mt-3 text-xs sm:text-sm lg:text-base leading-relaxed text-slate-600">
-                      {step.description}
-                    </p>
-                  </div>
-                  
-                  {/* Connector line for desktop */}
-                  {i < steps.length - 1 && (
-                    <div className="hidden lg:block absolute top-8 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-blue-200 to-indigo-200"></div>
-                  )}
-                </motion.div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+  return <section id="how-it-works" className="bg-[#f6f9fd] px-5 py-24 lg:px-8 lg:py-36"><div className="mx-auto max-w-7xl"><div className="grid gap-14 lg:grid-cols-[.7fr_1.3fr] lg:items-end"><FadeIn><p className="text-[10px] font-bold uppercase tracking-[.18em] text-blue-600">From browse to delivered</p><h2 className="mt-4 text-4xl font-extrabold leading-[1.02] tracking-[-.07em] text-[#0a2342] sm:text-5xl">Simple by design.<br /><span className="font-serif font-semibold italic text-blue-600">Clear at every step.</span></h2></FadeIn><FadeIn delay={.1}><p className="max-w-md text-sm leading-7 text-slate-500 lg:justify-self-end">No confusing handoffs or hidden steps. Find what fits, pay safely, and receive your account quickly.</p></FadeIn></div><div className="relative mt-16 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">{steps.map(({ icon: Icon, label, title, copy }, index) => <FadeIn key={title} delay={index * .1}><motion.div whileHover={{ y: -6 }} className="relative"><div className="mb-6 flex items-center justify-between"><span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#0a2342] text-white shadow-lg shadow-[#0a2342]/15"><Icon size={23} /></span><span className="font-mono text-[10px] font-bold text-blue-600">0{index + 1}</span></div><p className="text-[10px] font-bold uppercase tracking-[.15em] text-slate-400">{label}</p><h3 className="mt-2 text-lg font-extrabold tracking-[-.04em] text-[#0a2342]">{title}</h3><p className="mt-3 text-xs leading-6 text-slate-500">{copy}</p>{index < steps.length - 1 && <div className="absolute right-[-24px] top-7 hidden h-px w-12 bg-blue-200 lg:block" />}</motion.div></FadeIn>)}</div><div className="mt-14 flex flex-wrap items-center gap-6 border-t border-slate-200 pt-6 text-xs font-bold text-slate-500"><span className="inline-flex items-center gap-2"><ShoppingCart size={15} className="text-blue-600" /> Marketplace-first buying</span><span className="inline-flex items-center gap-2"><ShieldCheck size={15} className="text-blue-600" /> Protected purchase</span></div></div></section>;
 }

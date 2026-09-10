@@ -1,117 +1,44 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, ShieldCheck, X } from "lucide-react";
+import { motion } from "framer-motion";
 
 const links = [
+  { label: "Why TrustedAccounts", href: "#features" },
   { label: "How it works", href: "#how-it-works" },
-  { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Customer stories", href: "#testimonials" },
 ];
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 16);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm"
-          : "bg-transparent border-transparent"
-      }`}
-    >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8 lg:py-5">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
-            <div className="relative bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg p-1.5">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          </div>
-          <span className="text-sm sm:text-base lg:text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-            TrustedAccounts
-          </span>
+    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? "border-b border-slate-200/70 bg-white/85 shadow-[0_8px_30px_rgba(10,35,66,0.06)] backdrop-blur-xl" : "bg-transparent"}`}>
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
+        <Link href="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#0a2342] text-white shadow-[4px_4px_0_#b9d5ff]"><ShieldCheck size={19} strokeWidth={2.5} /></span>
+          <span className="text-[15px] font-extrabold tracking-[-0.06em] text-[#0a2342] sm:text-lg">Trusted<span className="text-[#2563eb]">Accounts</span></span>
         </Link>
-
-        <div className="hidden items-center gap-4 md:gap-6 md:flex">
-          {links.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-xs sm:text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 relative group"
-            >
-              {link.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 group-hover:w-full transition-all duration-300"></span>
-            </a>
-          ))}
+        <div className="hidden items-center gap-8 md:flex">
+          {links.map((link) => <a key={link.href} href={link.href} className="text-xs font-bold text-slate-500 transition-colors hover:text-[#0a2342]">{link.label}</a>)}
         </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href="/login"
-            className="hidden text-xs sm:text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 sm:block"
-          >
-            Sign in
-          </Link>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Link href="/signup">
-              <Button
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all"
-              >
-                Get Started
-              </Button>
-            </Link>
-          </motion.div>
-          <button
-            className="md:hidden p-1.5 text-slate-600 hover:text-slate-900"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+        <div className="flex items-center gap-3">
+          <Link href="/login" className="hidden text-xs font-bold text-slate-500 hover:text-[#0a2342] sm:block">Sign in</Link>
+          <Link href="/signup" className="rounded-lg bg-[#0a2342] px-4 py-2.5 text-xs font-extrabold text-white shadow-lg shadow-[#0a2342]/15 transition hover:-translate-y-0.5 hover:bg-[#12365f]">Browse accounts</Link>
+          <button type="button" className="grid h-9 w-9 place-items-center text-[#0a2342] md:hidden" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen(!open)}>{open ? <X size={20} /> : <Menu size={20} />}</button>
         </div>
       </nav>
-
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="md:hidden bg-white/95 backdrop-blur-xl border-b border-slate-200/50"
-        >
-          <div className="px-4 py-3 space-y-3">
-            {links.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="block text-sm font-medium text-slate-600 hover:text-slate-900"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.label}
-              </a>
-            ))}
-            <Link
-              href="/login"
-              className="block text-sm font-medium text-slate-600 hover:text-slate-900"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Sign in
-            </Link>
-          </div>
-        </motion.div>
-      )}
+      {open && <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="border-t border-slate-200/70 bg-white/95 px-5 py-5 backdrop-blur-xl md:hidden"><div className="mx-auto flex max-w-7xl flex-col gap-5">{links.map((link) => <a key={link.href} href={link.href} className="text-sm font-bold text-slate-600" onClick={() => setOpen(false)}>{link.label}</a>)}<Link href="/login" className="text-sm font-bold text-slate-600" onClick={() => setOpen(false)}>Sign in</Link></div></motion.div>}
     </header>
   );
 }

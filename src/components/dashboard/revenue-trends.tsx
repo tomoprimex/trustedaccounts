@@ -6,8 +6,7 @@ interface RevenueTrendsProps {
   monthlyRevenue: Record<string, number>;
 }
 
-function formatCurrency(cents: number) {
-  const amount = cents / 100;
+function formatCurrency(amount: number) {
   return `₦${amount.toLocaleString()}`;
 }
 
@@ -15,7 +14,7 @@ export function RevenueTrends({ monthlyRevenue }: RevenueTrendsProps) {
   const months = Object.keys(monthlyRevenue).sort().slice(-6);
   const data = months.map(month => ({
     month: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
-    revenue: monthlyRevenue[month] || 0,
+    revenue: monthlyRevenue[month] || 0, // Now stored in Naira
   }));
 
   const maxRevenue = Math.max(...data.map(d => d.revenue), 1);

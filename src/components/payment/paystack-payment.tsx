@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { X } from "lucide-react";
 
 interface PaystackPaymentProps {
-  amount: number; // in cents
+  amount: number; // in Naira
   email: string;
   onSuccess: (reference: string) => void;
   onClose: () => void;
@@ -37,7 +37,7 @@ export function PaystackPayment({ amount, email, onSuccess, onClose, onCancel }:
 
   const handlePayment = () => {
     const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "";
-    const amountInKobo = amount; // Paystack expects amount in kobo (cents)
+    const amountInKobo = amount * 100; // Convert Naira to kobo for Paystack
 
     const handler = (window as any).PaystackPop.setup({
       key: publicKey,
@@ -90,7 +90,7 @@ export function PaystackPayment({ amount, email, onSuccess, onClose, onCancel }:
           <div className="flex justify-between items-center mb-2">
             <span className="text-slate-600">Amount to Pay</span>
             <span className="text-2xl font-bold text-slate-800">
-              ₦{(amount / 100).toLocaleString()}
+              ₦{amount.toLocaleString()}
             </span>
           </div>
           <div className="flex justify-between items-center text-sm text-slate-500">

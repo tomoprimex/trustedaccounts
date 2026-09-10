@@ -1,102 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Quote, Star } from "lucide-react";
 import { FadeIn } from "./fade-in";
-import { Star, Quote } from "lucide-react";
 
 const testimonials = [
-  {
-    quote:
-      "Needed multiple social media accounts for my marketing agency. The bundle deal was perfect and delivery was instant. Highly recommend!",
-    name: "Alex M.",
-    context: "Marketing Agency Owner",
-    rating: 5,
-  },
-  {
-    quote:
-      "The accounts are exactly as described - fully verified and working. Customer support helped me set everything up quickly.",
-    name: "Sarah K.",
-    context: "Content Creator",
-    rating: 5,
-  },
-  {
-    quote:
-      "Best prices I've found anywhere. The replacement guarantee gave me peace of mind. Will definitely be ordering again.",
-    name: "James T.",
-    context: "Digital Marketer",
-    rating: 5,
-  },
-];
-
-const trustPoints = [
-  { label: "Verified accounts only" },
-  { label: "Instant delivery" },
-  { label: "24/7 customer support" },
-  { label: "Replacement guarantee" },
+  { quote: "The account was exactly as described and arrived immediately after payment. The whole process felt straightforward.", name: "Alex M.", role: "Marketing agency owner", initials: "AM" },
+  { quote: "I needed multiple platforms for a campaign and found everything in one place. Support was quick when I had a question.", name: "Sarah K.", role: "Content creator", initials: "SK" },
+  { quote: "The replacement guarantee made the decision easy. Clear listing, fast delivery, no unnecessary back and forth.", name: "James T.", role: "Digital marketer", initials: "JT" },
 ];
 
 export function Testimonials() {
-  return (
-    <section className="relative py-16 sm:py-20 lg:py-32 bg-gradient-to-b from-slate-50 to-white">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <FadeIn className="max-w-3xl mx-auto text-center mb-10 sm:mb-16">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900">
-            Loved by thousands of
-            <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-2">
-              satisfied customers
-            </span>
-          </h2>
-        </FadeIn>
-
-        <div className="mt-10 sm:mt-14 grid gap-6 sm:gap-8 lg:grid-cols-3">
-          {testimonials.map((t, i) => (
-            <FadeIn key={t.name} delay={i * 0.1}>
-              <motion.div
-                whileHover={{ y: -8 }}
-                transition={{ duration: 0.3 }}
-                className="flex h-full flex-col justify-between rounded-2xl sm:rounded-3xl border border-slate-200/50 bg-white p-4 sm:p-6 lg:p-8 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300"
-              >
-                <div>
-                  <div className="flex gap-0.5 sm:gap-1 mb-3 sm:mb-4">
-                    {[...Array(t.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 fill-amber-400" />
-                    ))}
-                  </div>
-                  <blockquote className="text-sm sm:text-base leading-relaxed text-slate-700">
-                    "{t.quote}"
-                  </blockquote>
-                </div>
-                <figcaption className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-slate-100">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                      <span className="text-sm sm:text-base lg:text-lg font-semibold text-blue-600">{t.name.charAt(0)}</span>
-                    </div>
-                    <div>
-                      <div className="text-xs sm:text-sm font-semibold text-slate-900">{t.name}</div>
-                      <div className="text-xs sm:text-sm text-slate-500">{t.context}</div>
-                    </div>
-                  </div>
-                </figcaption>
-              </motion.div>
-            </FadeIn>
-          ))}
-        </div>
-
-        <FadeIn delay={0.2}>
-          <div className="mt-10 sm:mt-16 flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-8 gap-y-3 sm:gap-y-4 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 px-4 sm:px-8 py-4 sm:py-8 max-w-4xl mx-auto">
-            {trustPoints.map((point) => (
-              <div key={point.label} className="flex items-center gap-1.5 sm:gap-2.5 text-xs sm:text-sm font-medium text-slate-700">
-                <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-blue-600 flex items-center justify-center">
-                  <svg width="8" height="8" viewBox="0 0 16 16" fill="none" className="text-white">
-                    <path d="M3 8.5l3 3 7-7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                {point.label}
-              </div>
-            ))}
-          </div>
-        </FadeIn>
-      </div>
-    </section>
-  );
+  return <section id="testimonials" className="bg-white px-5 py-24 lg:px-8 lg:py-36"><div className="mx-auto max-w-7xl"><FadeIn className="mx-auto max-w-2xl text-center"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-blue-600">Real buyers, real experiences</p><h2 className="mt-4 text-4xl font-extrabold tracking-[-.07em] text-[#0a2342] sm:text-5xl">A marketplace people<br /><span className="font-serif font-semibold italic text-blue-600">come back to.</span></h2></FadeIn><div className="mt-14 grid gap-5 lg:grid-cols-3">{testimonials.map((testimonial, index) => <FadeIn key={testimonial.name} delay={index * .1}><motion.figure whileHover={{ y: -7 }} className="flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-[#f8fbff] p-6 transition-shadow hover:shadow-xl hover:shadow-blue-900/10 sm:p-8"><div><div className="flex items-center justify-between"><div className="flex gap-1 text-amber-400">{Array.from({ length: 5 }).map((_, star) => <Star key={star} size={14} fill="currentColor" />)}</div><Quote size={25} className="text-blue-200" /></div><blockquote className="mt-8 text-base font-semibold leading-7 tracking-[-.02em] text-[#0a2342]">“{testimonial.quote}”</blockquote></div><figcaption className="mt-9 flex items-center gap-3 border-t border-slate-200 pt-5"><span className="grid h-10 w-10 place-items-center rounded-full bg-blue-100 text-xs font-extrabold text-blue-700">{testimonial.initials}</span><span><strong className="block text-xs font-extrabold text-[#0a2342]">{testimonial.name}</strong><small className="mt-1 block text-[10px] text-slate-500">{testimonial.role}</small></span></figcaption></motion.figure></FadeIn>)}</div></div></section>;
 }

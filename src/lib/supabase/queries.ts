@@ -4,6 +4,23 @@ const supabase = createClient();
 
 // Get all users (admin only)
 export async function getUsers(options?: { limit?: number }) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
+  // Only admins can access all users
+  if (role !== 'admin') {
+    throw new Error('Unauthorized: Admin access required');
+  }
+
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
@@ -47,7 +64,7 @@ export async function getDashboardStats() {
       supabase.from('accounts').select('*', { count: 'exact', head: true }).eq('status', 'available'),
     ]);
 
-    totalRevenue = revenueData?.reduce((sum, r) => sum + (r.amount_cents || 0), 0) || 0;
+    totalRevenue = (revenueData?.reduce((sum, r) => sum + (r.amount_cents || 0), 0) || 0) / 100;
     totalOrders = ordersCount || 0;
     totalCustomers = customersCount || 0;
     totalAccounts = accountsCount || 0;
@@ -63,7 +80,7 @@ export async function getDashboardStats() {
       supabase.from('accounts').select('*', { count: 'exact', head: true }).eq('seller_id', user.id),
     ]);
 
-    totalRevenue = revenueData?.reduce((sum, r) => sum + (r.amount_cents || 0), 0) || 0;
+    totalRevenue = (revenueData?.reduce((sum, r) => sum + (r.amount_cents || 0), 0) || 0) / 100;
     totalOrders = ordersCount || 0;
     totalAccounts = accountsCount || 0;
   } else {
@@ -216,6 +233,18 @@ export async function getOrders(filters?: {
   limit?: number;
   offset?: number;
 }) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
   let query = supabase
     .from('orders')
     .select(`
@@ -224,6 +253,15 @@ export async function getOrders(filters?: {
       account:accounts!orders_account_id_fkey (platform, username, price_cents, currency)
     `)
     .order('created_at', { ascending: false });
+
+  // Filter based on role
+  if (role === 'customer') {
+    query = query.eq('customer_id', user.id);
+  } else if (role === 'seller') {
+    // Seller sees orders for their accounts
+    query = query.eq('account.seller_id', user.id);
+  }
+  // Admin sees all orders (no filter)
 
   if (filters?.status && filters.status !== 'all') {
     query = query.eq('status', filters.status);
@@ -254,6 +292,18 @@ export async function getAccounts(filters?: {
   limit?: number;
   offset?: number;
 }) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
   let query = supabase
     .from('accounts')
     .select(`
@@ -261,6 +311,14 @@ export async function getAccounts(filters?: {
       seller:profiles!accounts_seller_id_fkey (full_name)
     `)
     .order('created_at', { ascending: false });
+
+  // Filter based on role
+  if (role === 'seller') {
+    // Sellers see only their own accounts
+    query = query.eq('seller_id', user.id);
+  }
+  // Admin sees all accounts (no filter)
+  // Customers see available accounts (filtered by status below)
 
   if (filters?.platform && filters.platform !== 'all') {
     query = query.eq('platform', filters.platform);
@@ -294,6 +352,18 @@ export async function getCustomers(filters?: {
   limit?: number;
   offset?: number;
 }) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
   let query = supabase
     .from('profiles')
     .select(`
@@ -306,6 +376,13 @@ export async function getCustomers(filters?: {
     `)
     .eq('role', 'customer')
     .order('created_at', { ascending: false });
+
+  // Filter based on role
+  if (role === 'customer') {
+    // Customers can only see their own profile
+    query = query.eq('id', user.id);
+  }
+  // Admin and seller see all customers (no filter)
 
   if (filters?.status && filters.status !== 'all') {
     query = query.eq('status', filters.status);
@@ -331,7 +408,7 @@ export async function getCustomers(filters?: {
 // Create Order
 export async function createOrder(orderData: {
   account_id: string;
-  amount_cents: number;
+  amount_naira: number;
   currency?: string;
   payment_method?: string;
   payment_reference?: string;
@@ -344,7 +421,11 @@ export async function createOrder(orderData: {
     .insert({
       customer_id: user.id,
       order_number: `ORD-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-      ...orderData,
+      account_id: orderData.account_id,
+      amount_cents: orderData.amount_naira * 100, // Convert Naira to cents
+      currency: orderData.currency || 'NGN',
+      payment_method: orderData.payment_method,
+      payment_reference: orderData.payment_reference,
     })
     .select()
     .single();
@@ -355,8 +436,8 @@ export async function createOrder(orderData: {
   if (data) {
     await supabase.from('revenue').insert({
       order_id: data.id,
-      amount_cents: orderData.amount_cents,
-      currency: orderData.currency || 'USD',
+      amount_cents: orderData.amount_naira * 100, // Convert Naira to cents for storage
+      currency: orderData.currency || 'NGN',
       date: new Date().toISOString().split('T')[0],
     });
   }
@@ -455,12 +536,35 @@ export async function updateAccount(accountId: string, updates: {
   description?: string;
   status?: 'available' | 'reserved' | 'sold' | 'removed';
 }) {
-  const { data, error } = await supabase
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
+  let query = supabase
     .from('accounts')
     .update(updates)
-    .eq('id', accountId)
-    .select()
-    .single();
+    .eq('id', accountId);
+
+  // Filter based on role
+  if (role === 'seller') {
+    // Sellers can only update their own accounts
+    query = query.eq('seller_id', user.id);
+  }
+  // Admin can update all accounts (no filter)
+  // Customers cannot update accounts
+  if (role === 'customer') {
+    throw new Error('Unauthorized: Customers cannot update accounts');
+  }
+
+  const { data, error } = await query.select().single();
 
   if (error) throw error;
   return data;
@@ -468,16 +572,82 @@ export async function updateAccount(accountId: string, updates: {
 
 // Delete Account
 export async function deleteAccount(accountId: string) {
-  const { error } = await supabase
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
+  // Customers cannot delete accounts
+  if (role === 'customer') {
+    throw new Error('Unauthorized: Customers cannot delete accounts');
+  }
+
+  // Check if account has associated orders
+  const { count: orderCount } = await supabase
+    .from('orders')
+    .select('*', { count: 'exact', head: true })
+    .eq('account_id', accountId);
+
+  if (orderCount && orderCount > 0) {
+    // Auto-mark as removed instead of deleting
+    let updateQuery = supabase
+      .from('accounts')
+      .update({ status: 'removed' })
+      .eq('id', accountId);
+
+    // Filter based on role
+    if (role === 'seller') {
+      updateQuery = updateQuery.eq('seller_id', user.id);
+    }
+
+    const { error } = await updateQuery;
+    if (error) throw error;
+    return; // Successfully marked as removed
+  }
+
+  let query = supabase
     .from('accounts')
     .delete()
     .eq('id', accountId);
+
+  // Filter based on role
+  if (role === 'seller') {
+    // Sellers can only delete their own accounts
+    query = query.eq('seller_id', user.id);
+  }
+  // Admin can delete all accounts (no filter)
+
+  const { error } = await query;
 
   if (error) throw error;
 }
 
 // Update Customer Status
 export async function updateCustomerStatus(customerId: string, status: 'active' | 'inactive' | 'suspended') {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
+  // Only admins can update customer status
+  if (role !== 'admin') {
+    throw new Error('Unauthorized: Admin access required');
+  }
+
   const { data, error } = await supabase
     .from('profiles')
     .update({ status })
@@ -491,6 +661,40 @@ export async function updateCustomerStatus(customerId: string, status: 'active' 
 
 // Delete Customer
 export async function deleteCustomer(customerId: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
+  // Only admins can delete customers
+  if (role !== 'admin') {
+    throw new Error('Unauthorized: Admin access required');
+  }
+
+  // Check if customer has associated orders
+  const { count: orderCount } = await supabase
+    .from('orders')
+    .select('*', { count: 'exact', head: true })
+    .eq('customer_id', customerId);
+
+  if (orderCount && orderCount > 0) {
+    // Auto-mark as suspended instead of deleting
+    const { error } = await supabase
+      .from('profiles')
+      .update({ status: 'suspended' })
+      .eq('id', customerId);
+
+    if (error) throw error;
+    return; // Successfully marked as suspended
+  }
+
   const { error } = await supabase
     .from('profiles')
     .delete()
@@ -501,6 +705,39 @@ export async function deleteCustomer(customerId: string) {
 
 // Delete Order
 export async function deleteOrder(orderId: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
+  // Only admins can delete orders
+  if (role !== 'admin') {
+    throw new Error('Unauthorized: Admin access required');
+  }
+
+  // Check if order has associated revenue records
+  const { count: revenueCount } = await supabase
+    .from('revenue')
+    .select('*', { count: 'exact', head: true })
+    .eq('order_id', orderId);
+
+  if (revenueCount && revenueCount > 0) {
+    // Delete associated revenue records first
+    const { error: revenueError } = await supabase
+      .from('revenue')
+      .delete()
+      .eq('order_id', orderId);
+
+    if (revenueError) throw revenueError;
+  }
+
   const { error } = await supabase
     .from('orders')
     .delete()
@@ -511,6 +748,23 @@ export async function deleteOrder(orderId: string) {
 
 // Update Order Status
 export async function updateOrderStatus(orderId: string, status: 'completed' | 'pending' | 'processing' | 'failed' | 'refunded') {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
+  // Only admins can update order status
+  if (role !== 'admin') {
+    throw new Error('Unauthorized: Admin access required');
+  }
+
   const { data, error } = await supabase
     .from('orders')
     .update({ status })
@@ -524,6 +778,23 @@ export async function updateOrderStatus(orderId: string, status: 'completed' | '
 
 // Get Admin Analytics
 export async function getAdminAnalytics() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
+  // Only admins can access analytics
+  if (role !== 'admin') {
+    throw new Error('Unauthorized: Admin access required');
+  }
+
   const [
     { data: revenueData },
     { data: ordersData },
@@ -538,14 +809,14 @@ export async function getAdminAnalytics() {
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'seller'),
   ]);
 
-  const totalRevenue = revenueData?.reduce((sum, r) => sum + (r.amount_cents || 0), 0) || 0;
+  const totalRevenue = (revenueData?.reduce((sum, r) => sum + (r.amount_cents || 0), 0) || 0) / 100; // Convert cents to Naira
   const totalOrders = ordersData?.length || 0;
   
   // Calculate revenue by month for trends
   const monthlyRevenue = new Array(12).fill(0);
   revenueData?.forEach(r => {
     const month = new Date(r.date).getMonth();
-    monthlyRevenue[month] += r.amount_cents || 0;
+    monthlyRevenue[month] += (r.amount_cents || 0) / 100; // Convert cents to Naira
   });
 
   // Get top platforms
@@ -577,10 +848,31 @@ export async function getAdminAnalytics() {
 
 // Get Top Platforms
 export async function getTopPlatforms(limit = 5) {
-  const { data, error } = await supabase
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
+  let query = supabase
     .from('accounts')
     .select('platform')
     .eq('status', 'sold');
+
+  // Filter based on role
+  if (role === 'seller') {
+    query = query.eq('seller_id', user.id);
+  }
+  // Admin sees all platforms (no filter)
+  // Customers don't need this data but it's okay
+
+  const { data, error } = await query;
 
   if (error) throw error;
 
@@ -597,15 +889,37 @@ export async function getTopPlatforms(limit = 5) {
 
 // Get Recent Activity
 export async function getRecentActivity(limit = 10) {
-  const { data, error } = await supabase
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Get user role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'customer';
+
+  let query = supabase
     .from('orders')
     .select(`
       *,
       customer:profiles!orders_customer_id_fkey (full_name),
       account:accounts!orders_account_id_fkey (platform)
     `)
-    .order('created_at', { ascending: false })
-    .limit(limit);
+    .order('created_at', { ascending: false });
+
+  // Filter based on role
+  if (role === 'customer') {
+    query = query.eq('customer_id', user.id);
+  } else if (role === 'seller') {
+    // Seller sees orders for their accounts
+    query = query.eq('account.seller_id', user.id);
+  }
+  // Admin sees all orders (no filter)
+
+  const { data, error } = await query.limit(limit);
 
   if (error) throw error;
   return data;
@@ -684,7 +998,7 @@ export async function createPurchase(userId: string, accountId: string) {
       order_number: orderNum,
       customer_id: userId,
       account_id: accountId,
-      amount_cents: account.price_cents,
+      amount_cents: account.price_cents * 100, // Convert Naira to cents for storage
       currency: 'NGN',
       status: 'completed',
       delivery_status: 'delivered',
@@ -693,6 +1007,19 @@ export async function createPurchase(userId: string, accountId: string) {
     .single();
 
   if (orderError) throw orderError;
+  
+  // Create revenue record
+  const { error: revenueError } = await supabase.from('revenue').insert({
+    order_id: order.id,
+    amount_cents: account.price_cents * 100, // Convert Naira to cents for storage
+    currency: 'NGN',
+    date: new Date().toISOString().split('T')[0],
+  });
+
+  if (revenueError) {
+    console.error('Error creating revenue record:', revenueError);
+    // Don't throw - revenue record creation shouldn't block the purchase
+  }
   
   // Mark account as sold
   const { error: updateError } = await supabase

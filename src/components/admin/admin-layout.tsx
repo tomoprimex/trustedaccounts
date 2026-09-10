@@ -23,12 +23,12 @@ const navigation = [
 
 // Design tokens — kept local so the palette is easy to retune in one place.
 const tokens = {
-  ink: "#14161A",
-  inkLine: "#2A2E35",
-  paper: "#F6F5F1",
-  line: "#E4E1D9",
-  accent: "#3E6B5C",
-  accentSoft: "#DCE8E3",
+  ink: "#0A2342",
+  inkLine: "#18385F",
+  paper: "#F5F7FB",
+  line: "#DCE5F2",
+  accent: "#4C9BFF",
+  accentSoft: "#DCEAFF",
   text: "#14161A",
   textMuted: "#8A8D93",
 };
@@ -72,7 +72,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         the cascade at desktop widths no matter what `sidebarOpen` is set to.
       */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-72 transition-transform duration-300 ease-in-out
+        className={`fixed left-0 top-0 z-50 h-full w-[min(86vw,288px)] transition-transform duration-300 ease-in-out
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0`}
         style={{ background: tokens.ink }}
@@ -80,7 +80,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col h-full">
           {/* Wordmark */}
           <div
-            className="flex items-center justify-between px-6 py-6"
+            className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5"
             style={{ borderBottom: `1px solid ${tokens.inkLine}` }}
           >
             <div className="flex items-center gap-3">
@@ -92,7 +92,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   A
                 </span>
               </div>
-              <span className="text-lg font-medium tracking-tight" style={{ color: tokens.paper }}>
+              <span className="text-base font-extrabold tracking-tight" style={{ color: tokens.paper }}>
                 Admin
               </span>
             </div>
@@ -107,7 +107,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-3 py-6">
+          <nav className="flex-1 px-3 py-5">
             <ul className="space-y-1">
               {navigation.map((item) => {
                 const isActive = pathname === item.href;
@@ -118,7 +118,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                     <Link
                       href={item.href}
                       onClick={() => setSidebarOpen(false)}
-                      className="relative flex items-center gap-3 pl-4 pr-4 py-2.5 transition-colors duration-150"
+                      className="relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors duration-150"
                       style={{
                         color: isActive ? tokens.paper : tokens.textMuted,
                       }}
@@ -132,7 +132,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                         />
                       )}
                       <Icon size={18} strokeWidth={1.75} />
-                      <span className="text-sm font-medium">{item.name}</span>
+                      <span className="text-xs font-bold">{item.name}</span>
                     </Link>
                   </li>
                 );
@@ -141,9 +141,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* Logout */}
-          <div className="px-3 pb-6">
+          <div className="px-3 pb-5">
             <button
-              className="flex items-center gap-3 w-full pl-4 pr-4 py-2.5 transition-colors duration-150 hover:text-white"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-bold transition-colors duration-150 hover:bg-white/10 hover:text-white"
               style={{ color: tokens.textMuted }}
             >
               <LogOut size={18} strokeWidth={1.75} />
@@ -160,10 +160,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         (or vice versa) — that mismatch was what pushed content off to the
         bottom-right before.
       */}
-      <div className="lg:ml-72 min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col lg:ml-72">
         {/* Top bar */}
         <header
-          className="sticky top-0 z-30 px-6 py-4"
+          className="sticky top-0 z-30 px-3 py-3 sm:px-5 sm:py-4"
           style={{ background: tokens.paper, borderBottom: `1px solid ${tokens.line}` }}
         >
           <div className="flex items-center justify-between">
@@ -176,7 +176,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               >
                 <Menu size={22} />
               </button>
-              <h2 className="text-lg font-medium tracking-tight" style={{ color: tokens.text }}>
+              <h2 className="text-base font-extrabold tracking-tight" style={{ color: tokens.text }}>
                 {activeItem?.name ?? "Admin"}
               </h2>
             </div>
@@ -198,7 +198,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 px-6 py-8">{children}</main>
+        <main className="flex-1 px-3 py-5 sm:px-5 sm:py-7">{children}</main>
       </div>
     </div>
   );

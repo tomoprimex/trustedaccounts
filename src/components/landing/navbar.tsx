@@ -23,22 +23,61 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? "border-b border-slate-200/70 bg-white/85 shadow-[0_8px_30px_rgba(10,35,66,0.06)] backdrop-blur-xl" : "bg-transparent"}`}>
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-        <Link href="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#0a2342] text-white shadow-[4px_4px_0_#b9d5ff]"><ShieldCheck size={19} strokeWidth={2.5} /></span>
-          <span className="text-[15px] font-extrabold tracking-[-0.06em] text-[#0a2342] sm:text-lg">Trusted<span className="text-[#2563eb]">Accounts</span></span>
+    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? "border-b border-slate-200/70 bg-white/85 shadow-[0_8px_30px_rgba(30,58,138,0.06)] backdrop-blur-xl" : "bg-transparent"}`}>
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-6">
+        <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
+          <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-blue-900 to-indigo-900 text-white shadow-[4px_4px_0_#b9d5ff]">
+            <ShieldCheck size={16} strokeWidth={2.5} />
+          </span>
+          <span className="text-[13px] font-extrabold tracking-[-0.06em] text-blue-900 sm:text-sm">
+            Trusted<span className="text-blue-600">Accounts</span>
+          </span>
         </Link>
-        <div className="hidden items-center gap-8 md:flex">
-          {links.map((link) => <a key={link.href} href={link.href} className="text-xs font-bold text-slate-500 transition-colors hover:text-[#0a2342]">{link.label}</a>)}
+        <div className="hidden items-center gap-6 md:flex">
+          {links.map((link) => (
+            <a key={link.href} href={link.href} className="text-[10px] font-bold text-slate-500 transition-colors hover:text-blue-900">
+              {link.label}
+            </a>
+          ))}
         </div>
-        <div className="flex items-center gap-3">
-          <Link href="/login" className="hidden text-xs font-bold text-slate-500 hover:text-[#0a2342] sm:block">Sign in</Link>
-          <Link href="/signup" className="rounded-lg bg-[#0a2342] px-4 py-2.5 text-xs font-extrabold text-white shadow-lg shadow-[#0a2342]/15 transition hover:-translate-y-0.5 hover:bg-[#12365f]">Browse accounts</Link>
-          <button type="button" className="grid h-9 w-9 place-items-center text-[#0a2342] md:hidden" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen(!open)}>{open ? <X size={20} /> : <Menu size={20} />}</button>
+        <div className="flex items-center gap-2">
+          <Link href="/login" className="hidden text-[10px] font-bold text-slate-500 hover:text-blue-900 sm:block">
+            Sign in
+          </Link>
+          <Link 
+            href="/signup" 
+            className="rounded-lg bg-gradient-to-r from-blue-900 to-indigo-900 px-3 py-2 text-[10px] font-extrabold text-white shadow-lg shadow-blue-900/15 transition hover:-translate-y-0.5 hover:from-blue-800 hover:to-indigo-800"
+          >
+            Browse accounts
+          </Link>
+          <button 
+            type="button" 
+            className="grid h-8 w-8 place-items-center text-blue-900 md:hidden" 
+            aria-label={open ? "Close menu" : "Open menu"} 
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
       </nav>
-      {open && <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="border-t border-slate-200/70 bg-white/95 px-5 py-5 backdrop-blur-xl md:hidden"><div className="mx-auto flex max-w-7xl flex-col gap-5">{links.map((link) => <a key={link.href} href={link.href} className="text-sm font-bold text-slate-600" onClick={() => setOpen(false)}>{link.label}</a>)}<Link href="/login" className="text-sm font-bold text-slate-600" onClick={() => setOpen(false)}>Sign in</Link></div></motion.div>}
+      {open && (
+        <motion.div 
+          initial={{ opacity: 0, y: -8 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          className="border-t border-slate-200/70 bg-white/95 px-4 py-4 backdrop-blur-xl md:hidden"
+        >
+          <div className="mx-auto flex max-w-7xl flex-col gap-4">
+            {links.map((link) => (
+              <a key={link.href} href={link.href} className="text-xs font-bold text-slate-600" onClick={() => setOpen(false)}>
+                {link.label}
+              </a>
+            ))}
+            <Link href="/login" className="text-xs font-bold text-slate-600" onClick={() => setOpen(false)}>
+              Sign in
+            </Link>
+          </div>
+        </motion.div>
+      )}
     </header>
   );
 }

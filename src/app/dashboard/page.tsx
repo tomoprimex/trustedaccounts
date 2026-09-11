@@ -100,8 +100,8 @@ export default function DashboardPage() {
               className="relative"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-indigo-900/10 rounded-xl blur-md" />
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-white/30 shadow-sm">
-                <div className={`p-1.5 rounded-lg bg-gradient-to-br ${stat.gradient} mb-1.5`}>
+              <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-3 border border-white/30 shadow-sm h-full min-h-[80px] flex flex-col justify-center">
+                <div className={`p-1.5 rounded-lg bg-gradient-to-br ${stat.gradient} mb-2 w-fit`}>
                   <stat.icon size={12} className="text-white" />
                 </div>
                 <p className="text-[10px] text-slate-500 font-medium leading-tight">{stat.name}</p>

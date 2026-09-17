@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, ShieldCheck } from "lucide-react";
+import { Mail } from "lucide-react";
 
 const columns = [
   { title: "Marketplace", links: [{ label: "Browse accounts", href: "/signup" }, { label: "How it works", href: "#how-it-works" }, { label: "Why trust us", href: "#features" }] },
@@ -14,11 +14,9 @@ export function Footer() {
         <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
           <div>
             <Link href="/" className="inline-flex items-center gap-2">
-              <span className="grid h-8 w-8 place-items-center rounded-xl bg-white text-blue-600">
-                <ShieldCheck size={16} />
-              </span>
+              <img src="/logo.png" alt="TrustedAccounts" className="h-8 w-8 rounded-xl" />
               <span className="text-sm font-extrabold tracking-[-.06em]">
-                Trusted<span className="text-blue-300">Accounts</span>
+                TrustedAccounts
               </span>
             </Link>
             <p className="mt-4 max-w-sm text-xs leading-6 text-blue-100/55">

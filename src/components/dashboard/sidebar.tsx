@@ -5,13 +5,14 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { ChevronRight, Key, LayoutDashboard, LogOut, Menu, Settings, ShoppingCart, Users, X } from "lucide-react";
+import { ChevronRight, LayoutDashboard, LogOut, Menu, Package, Settings, Store, Users, X, ShoppingBag } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", id: "dashboard" },
-  { icon: ShoppingCart, label: "Marketplace", href: "/marketplace", id: "marketplace" },
-  { icon: Key, label: "My Accounts", href: "/dashboard/accounts", id: "accounts" },
-  { icon: ShoppingCart, label: "Orders", href: "/dashboard/orders", id: "orders" },
+  { icon: Store, label: "Marketplace", href: "/marketplace", id: "marketplace" },
+  { icon: Package, label: "My Accounts", href: "/dashboard/accounts", id: "accounts" },
+  { icon: ShoppingBag, label: "Orders", href: "/dashboard/orders", id: "orders" },
   { icon: Users, label: "Customers", href: "/dashboard/customers", id: "customers" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings", id: "settings" },
 ];
@@ -24,7 +25,7 @@ export function Sidebar() {
   const logout = async () => { await createClient().auth.signOut(); window.location.href = "/login"; };
 
   return <>
-    <button type="button" aria-label="Open dashboard navigation" onClick={() => setMobileOpen(true)} className="fixed left-3 top-3 z-50 grid h-10 w-10 place-items-center rounded-xl bg-[#0a2342] text-white shadow-lg lg:hidden"><Menu size={19} /></button>
+    <button type="button" aria-label="Open dashboard navigation" onClick={() => setMobileOpen(true)} className="fixed left-3 top-3 z-50 grid h-10 w-10 place-items-center rounded-xl bg-[#1e65f3] text-white shadow-lg lg:hidden"><Menu size={19} /></button>
     <AnimatePresence>
       {mobileOpen && (
         <>
@@ -41,12 +42,14 @@ export function Sidebar() {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed left-0 top-0 z-50 h-full w-[min(86vw,320px)] overflow-hidden bg-[#0a2342] text-white shadow-2xl lg:hidden"
+            className="fixed left-0 top-0 z-50 h-full w-[min(86vw,320px)] overflow-hidden bg-[#1e65f3] text-white shadow-2xl lg:hidden dark:bg-[#1e1b4b]"
           >
             <div className="flex h-full flex-col">
               <div className="border-b border-white/10 px-4 py-4 sm:px-5 relative">
                 <Link href="/dashboard" className="flex items-center gap-3" onClick={() => setMobileOpen(false)}>
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10"><Key size={18} className="text-blue-200" /></span>
+                  <div className="h-10 w-10 shrink-0 rounded-xl bg-white flex items-center justify-center overflow-hidden">
+                    <img src="/logo.png" alt="TrustedAccounts" className="h-8 w-8 object-contain" />
+                  </div>
                   <span>
                     <strong className="block text-base tracking-tight">TrustedAccounts</strong>
                     <small className="block text-[10px] text-white/55">Customer workspace</small>
@@ -70,15 +73,18 @@ export function Sidebar() {
                     >
                       <item.icon size={17} className="shrink-0" />
                       {item.label}
-                      {active === item.id && <i className="absolute right-3 h-1.5 w-1.5 rounded-full bg-cyan-300" />}
+                      {active === item.id && <i className="absolute right-3 h-1.5 w-1.5 rounded-full bg-[#1e65f3]" />}
                     </motion.span>
                   </Link>
                 ))}
               </nav>
               <div className="space-y-2 border-t border-white/10 p-3 sm:p-4">
-                <button 
-                  type="button" 
-                  onClick={logout} 
+                <div className="flex items-center justify-center">
+                  <ThemeToggle />
+                </div>
+                <button
+                  type="button"
+                  onClick={logout}
                   className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-bold text-white/65 hover:bg-red-500/20 hover:text-red-200"
                 >
                   <LogOut size={17} />
@@ -93,12 +99,14 @@ export function Sidebar() {
     <motion.aside 
       initial={false} 
       animate={{ width: collapsed ? 80 : 280 }} 
-      className="hidden lg:flex fixed left-0 top-0 z-30 h-full bg-[#0a2342] text-white shadow-2xl"
+      className="hidden lg:flex fixed left-0 top-0 z-30 h-full bg-[#1e65f3] text-white shadow-2xl dark:bg-[#1e1b4b]"
     >
       <div className="flex h-full flex-col">
         <div className="border-b border-white/10 px-4 py-4 sm:px-5">
           <Link href="/dashboard" className="flex items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10"><Key size={18} className="text-blue-200" /></span>
+            <div className="h-10 w-10 shrink-0 rounded-xl bg-white flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="TrustedAccounts" className="h-8 w-8 object-contain" />
+            </div>
             {!collapsed && <span>
               <strong className="block text-base tracking-tight">TrustedAccounts</strong>
               <small className="block text-[10px] text-white/55">Customer workspace</small>
@@ -114,23 +122,26 @@ export function Sidebar() {
               >
                 <item.icon size={17} className="shrink-0" />
                 {!collapsed && item.label}
-                {active === item.id && !collapsed && <i className="absolute right-3 h-1.5 w-1.5 rounded-full bg-cyan-300" />}
+                {active === item.id && !collapsed && <i className="absolute right-3 h-1.5 w-1.5 rounded-full bg-[#1e65f3]" />}
               </motion.span>
             </Link>
           ))}
         </nav>
         <div className="space-y-2 border-t border-white/10 p-3 sm:p-4">
-          <button 
-            type="button" 
-            onClick={() => setCollapsed(!collapsed)} 
+          <button
+            type="button"
+            onClick={() => setCollapsed(!collapsed)}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2.5 text-xs font-bold text-white/70 hover:bg-white/20"
           >
             <ChevronRight size={16} className={collapsed ? "rotate-180" : ""} />
             {!collapsed && "Collapse"}
           </button>
-          <button 
-            type="button" 
-            onClick={logout} 
+          <div className="flex items-center justify-center">
+            <ThemeToggle />
+          </div>
+          <button
+            type="button"
+            onClick={logout}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-bold text-white/65 hover:bg-red-500/20 hover:text-red-200"
           >
             <LogOut size={17} />

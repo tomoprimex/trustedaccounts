@@ -6,7 +6,7 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Search, ShoppingCart, Shield, Sparkles, ChevronRight } from "lucide-react";
 import { getMarketplaceAccounts, createPurchase } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/client";
-import { PaystackPayment } from "@/components/payment/paystack-payment";
+import { PaymentMethod } from "@/components/payment/paystack-payment";
 
 const supabase = createClient();
 
@@ -55,12 +55,17 @@ export default function MarketplacePage() {
     setShowPayment(true);
   };
 
-  const handlePaymentSuccess = async (reference: string) => {
+  const handlePaymentSuccess = async (reference: string, method: 'paystack' | 'transfer') => {
     setProcessing(true);
     try {
-      await createPurchase(user.id, selectedAccount.id);
-      alert('Purchase successful! You can now view the credentials in your dashboard.');
-      setAccounts(accounts.filter(a => a.id !== selectedAccount.id));
+      await createPurchase(user.id, selectedAccount.id, method, reference);
+      if (method === 'paystack') {
+        alert('Purchase successful! Your account credentials are now available in your dashboard.');
+        setAccounts(accounts.filter(a => a.id !== selectedAccount.id));
+      } else {
+        alert('Transfer proof submitted! Your order is pending admin approval. You will be able to access the account credentials once the transfer is verified and approved by admin.');
+        setAccounts(accounts.filter(a => a.id !== selectedAccount.id));
+      }
       setShowPayment(false);
       setSelectedAccount(null);
     } catch (error) {
@@ -206,9 +211,10 @@ export default function MarketplacePage() {
 
       {/* Payment Modal */}
       {showPayment && selectedAccount && user && (
-        <PaystackPayment
+        <PaymentMethod
           amount={selectedAccount.price_cents / 100}
           email={user.email}
+          accountId={selectedAccount.id}
           onSuccess={handlePaymentSuccess}
           onClose={handlePaymentCancel}
           onCancel={handlePaymentCancel}

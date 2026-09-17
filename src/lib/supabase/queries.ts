@@ -773,6 +773,38 @@ export async function updateOrderStatus(orderId: string, status: 'completed' | '
     .single();
 
   if (error) throw error;
+
+  // If order is being completed, create revenue record and mark account as sold
+  if (status === 'completed') {
+    const { data: order } = await supabase
+      .from('orders')
+      .select('account_id, amount_cents')
+      .eq('id', orderId)
+      .single();
+
+    if (order) {
+      // Create revenue record
+      await supabase.from('revenue').insert({
+        order_id: orderId,
+        amount_cents: order.amount_cents,
+        currency: 'NGN',
+        date: new Date().toISOString().split('T')[0],
+      });
+
+      // Mark account as sold
+      await supabase
+        .from('accounts')
+        .update({ status: 'sold' })
+        .eq('id', order.account_id);
+
+      // Update delivery status
+      await supabase
+        .from('orders')
+        .update({ delivery_status: 'delivered' })
+        .eq('id', orderId);
+    }
+  }
+
   return data;
 }
 
@@ -962,6 +994,7 @@ export async function getMarketplaceAccounts({ limit = 50, offset = 0 }: { limit
 }
 
 // Get purchased accounts for a user (with full details)
+// Only returns completed and delivered orders - users can't access accounts until admin approves transfer payments
 export async function getPurchasedAccounts(userId: string) {
   const { data, error } = await supabase
     .from('orders')
@@ -970,14 +1003,20 @@ export async function getPurchasedAccounts(userId: string) {
       account:accounts(*)
     `)
     .eq('customer_id', userId)
+    .eq('status', 'completed')
+    .eq('delivery_status', 'delivered')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
+  
+  // No additional filtering needed - the query already filters for completed and delivered
+  // Once admin approves a transfer order, it will have status='completed' and delivery_status='delivered'
+  // and will appear here like any other completed order
   return data;
 }
 
 // Create a purchase (create order and mark account as sold)
-export async function createPurchase(userId: string, accountId: string) {
+export async function createPurchase(userId: string, accountId: string, paymentMethod: 'paystack' | 'transfer' = 'paystack', paymentReference?: string) {
   // Get account details and check if still available
   const { data: account } = await supabase
     .from('accounts')
@@ -991,6 +1030,10 @@ export async function createPurchase(userId: string, accountId: string) {
   // Generate order number
   const orderNum = `ORD-${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
 
+  // Determine order status based on payment method
+  const orderStatus = paymentMethod === 'paystack' ? 'completed' : 'pending';
+  const deliveryStatus = paymentMethod === 'paystack' ? 'delivered' : 'pending';
+
   // Create order
   const { data: order, error: orderError } = await supabase
     .from('orders')
@@ -998,36 +1041,41 @@ export async function createPurchase(userId: string, accountId: string) {
       order_number: orderNum,
       customer_id: userId,
       account_id: accountId,
-      amount_cents: account.price_cents * 100, // Convert Naira to cents for storage
+      amount_cents: account.price_cents, // Already in cents from accounts table
       currency: 'NGN',
-      status: 'completed',
-      delivery_status: 'delivered',
+      status: orderStatus,
+      delivery_status: deliveryStatus,
+      payment_method: paymentMethod,
+      payment_reference: paymentReference,
     })
     .select()
     .single();
 
   if (orderError) throw orderError;
-  
-  // Create revenue record
-  const { error: revenueError } = await supabase.from('revenue').insert({
-    order_id: order.id,
-    amount_cents: account.price_cents * 100, // Convert Naira to cents for storage
-    currency: 'NGN',
-    date: new Date().toISOString().split('T')[0],
-  });
 
-  if (revenueError) {
-    console.error('Error creating revenue record:', revenueError);
-    // Don't throw - revenue record creation shouldn't block the purchase
+  // Only create revenue record and mark as sold for instant payments
+  if (paymentMethod === 'paystack') {
+    // Create revenue record
+    const { error: revenueError } = await supabase.from('revenue').insert({
+      order_id: order.id,
+      amount_cents: account.price_cents, // Already in cents from accounts table
+      currency: 'NGN',
+      date: new Date().toISOString().split('T')[0],
+    });
+
+    if (revenueError) {
+      console.error('Error creating revenue record:', revenueError);
+      // Don't throw - revenue record creation shouldn't block the purchase
+    }
+
+    // Mark account as sold
+    const { error: updateError } = await supabase
+      .from('accounts')
+      .update({ status: 'sold' })
+      .eq('id', accountId);
+
+    if (updateError) throw updateError;
   }
-  
-  // Mark account as sold
-  const { error: updateError } = await supabase
-    .from('accounts')
-    .update({ status: 'sold' })
-    .eq('id', accountId);
-
-  if (updateError) throw updateError;
 
   return order;
 }

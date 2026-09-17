@@ -12,19 +12,21 @@ import {
   LogOut,
   Menu,
   X,
+  Clock,
 } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Websites", href: "/admin/websites", icon: Globe },
   { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Orders", href: "/admin/orders", icon: Clock },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 // Design tokens — kept local so the palette is easy to retune in one place.
 const tokens = {
-  ink: "#0A2342",
-  inkLine: "#18385F",
+  ink: "#1e65f3",
+  inkLine: "#1e65f3",
   paper: "#F5F7FB",
   line: "#DCE5F2",
   accent: "#4C9BFF",
@@ -84,14 +86,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             style={{ borderBottom: `1px solid ${tokens.inkLine}` }}
           >
             <div className="flex items-center gap-3">
-              <div
-                className="flex items-center justify-center w-8 h-8"
-                style={{ background: tokens.accent, borderRadius: 4 }}
-              >
-                <span className="text-sm font-semibold" style={{ color: tokens.paper }}>
-                  A
-                </span>
-              </div>
+              <img src="/logo.png" alt="TrustedAccounts" className="h-8 w-8 rounded-lg" />
               <span className="text-base font-extrabold tracking-tight" style={{ color: tokens.paper }}>
                 Admin
               </span>

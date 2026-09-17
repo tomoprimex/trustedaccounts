@@ -21,6 +21,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.dark body {
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -65,6 +70,12 @@ textarea {
     box-shadow: 0 12px 30px rgba(15, 35, 65, 0.06);
   }
 
+  .dark .app-surface {
+    border-color: #334155;
+    background: rgba(30, 41, 59, 0.92);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  }
+
   .app-page-title {
     color: #0a2342;
     font-size: clamp(1.35rem, 2vw, 1.8rem);
@@ -72,10 +83,18 @@ textarea {
     letter-spacing: -0.05em;
   }
 
+  .dark .app-page-title {
+    color: #f1f5f9;
+  }
+
   .app-page-subtitle {
     color: #64748b;
     font-size: 0.78rem;
     line-height: 1.6;
+  }
+
+  .dark .app-page-subtitle {
+    color: #94a3b8;
   }
 
   .app-input {
@@ -88,6 +107,12 @@ textarea {
     transition: border-color 160ms ease, box-shadow 160ms ease;
   }
 
+  .dark .app-input {
+    border-color: #475569;
+    background: #1e293b;
+    color: #f1f5f9;
+  }
+
   .app-input:focus {
     border-color: #1e65f3;
     box-shadow: 0 0 0 3px rgba(30, 101, 243, 0.1);
@@ -98,18 +123,36 @@ textarea {
     color: #334155 !important;
   }
 
+  .dark .auth-shell label {
+    color: #cbd5e1 !important;
+  }
+
   .auth-shell input {
     border-color: #dbe3ef !important;
     background: #fff !important;
     color: #10233f !important;
   }
 
+  .dark .auth-shell input {
+    border-color: #475569 !important;
+    background: #1e293b !important;
+    color: #f1f5f9 !important;
+  }
+
   .auth-shell input::placeholder {
     color: #94a3b8 !important;
   }
 
+  .dark .auth-shell input::placeholder {
+    color: #64748b !important;
+  }
+
   .auth-shell form svg {
     color: #94a3b8 !important;
+  }
+
+  .dark .auth-shell form svg {
+    color: #64748b !important;
   }
 
   .auth-shell form button[type="submit"] {
@@ -122,6 +165,12 @@ textarea {
   .auth-shell form p,
   .auth-shell h3 {
     color: #64748b !important;
+  }
+
+  .dark .auth-shell form a,
+  .dark .auth-shell form p,
+  .dark .auth-shell h3 {
+    color: #94a3b8 !important;
   }
 
   .auth-shell form a:hover {

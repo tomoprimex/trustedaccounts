@@ -8,10 +8,15 @@ import { ShoppingBag, Calendar, TrendingUp, Sparkles, ChevronRight } from "lucid
 
 const statusConfig = {
   completed: { label: "Completed", color: "bg-gradient-to-r from-blue-600 to-blue-600 text-white" },
-  pending: { label: "Pending", color: "bg-gradient-to-r from-amber-400 to-yellow-500 text-white" },
+  pending: { label: "Pending Approval", color: "bg-gradient-to-r from-amber-400 to-yellow-500 text-white" },
   processing: { label: "Processing", color: "bg-gradient-to-r from-blue-600 to-blue-700 text-white" },
   failed: { label: "Failed", color: "bg-gradient-to-r from-red-400 to-red-500 text-white" },
   refunded: { label: "Refunded", color: "bg-gradient-to-r from-slate-400 to-slate-500 text-white" },
+};
+
+const deliveryConfig = {
+  delivered: { label: "Delivered", color: "text-green-600" },
+  pending: { label: "Pending", color: "text-amber-600" },
 };
 
 function formatCurrency(cents: number) {
@@ -65,6 +70,7 @@ export default function OrdersPage() {
             </h1>
           </div>
           <p className="text-xs text-slate-500">Manage your orders and track their status</p>
+          <p className="text-[10px] text-amber-600 mt-1">Note: Bank transfer orders require admin approval before account access</p>
         </motion.div>
 
         {/* Empty State */}
@@ -120,6 +126,22 @@ export default function OrdersPage() {
                         <TrendingUp size={8} className="text-slate-400" />
                         <span className="text-[8px] font-medium text-slate-900">{formatCurrency(order.amount_cents)}</span>
                       </div>
+                    </div>
+
+                    {/* Payment Method & Delivery Status */}
+                    <div className="flex items-center justify-between mb-2 text-[8px]">
+                      <div className="flex items-center gap-1">
+                        <span className="text-slate-500">Payment:</span>
+                        <span className="font-medium text-slate-900 capitalize">{order.payment_method || 'N/A'}</span>
+                      </div>
+                      {order.delivery_status && (
+                        <div className="flex items-center gap-1">
+                          <span className="text-slate-500">Delivery:</span>
+                          <span className={`font-medium ${deliveryConfig[order.delivery_status as keyof typeof deliveryConfig]?.color || 'text-slate-900'}`}>
+                            {deliveryConfig[order.delivery_status as keyof typeof deliveryConfig]?.label || order.delivery_status}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Account Info */}

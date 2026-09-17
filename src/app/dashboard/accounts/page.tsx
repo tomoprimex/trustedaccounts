@@ -79,6 +79,7 @@ export default function AccountsPage() {
             </h1>
           </div>
           <p className="text-xs text-slate-500">View and manage your purchased account credentials</p>
+          <p className="text-[10px] text-amber-600 mt-1">Only completed and delivered orders appear here</p>
         </motion.div>
 
         {/* Empty State */}
@@ -108,16 +109,16 @@ export default function AccountsPage() {
                   transition={{ delay: index * 0.03 }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md" />
-                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-white/30 shadow-sm">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
+                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-white/30 shadow-sm dark:bg-slate-800/80 dark:border-slate-700/50">
                     {/* Card Header */}
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-600 flex items-center justify-center text-sm flex-shrink-0">
                         {platformIcons[account.platform] || "🌐"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-[11px] font-bold text-slate-900 truncate">{account.username}</h3>
-                        <p className="text-[9px] text-slate-500 truncate">{account.email}</p>
+                        <h3 className="text-[11px] font-bold text-slate-900 truncate dark:text-white">{account.username}</h3>
+                        <p className="text-[9px] text-slate-500 truncate dark:text-slate-400">{account.email}</p>
                       </div>
                       <div className="px-1.5 py-0.5 rounded-md bg-gradient-to-r from-blue-600 to-blue-600 text-white text-[8px] font-bold flex-shrink-0 capitalize">
                         {account.platform}

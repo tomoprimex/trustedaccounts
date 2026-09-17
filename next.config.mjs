@@ -2,10 +2,8 @@
 const nextConfig = {
   /* config options here */
   reactCompiler: true,
-  experimental: {
-    turbo: {
-      root: process.cwd(),
-    },
+  images: {
+    unoptimized: true,
   },
 };
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, ShieldCheck, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 
 const links = [
@@ -26,9 +26,7 @@ export function Navbar() {
     <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? "border-b border-slate-200/70 bg-white/85 shadow-[0_8px_30px_rgba(30,101,243,0.06)] backdrop-blur-xl" : "bg-transparent"}`}>
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-6">
         <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-600 text-white shadow-[4px_4px_0_#b9d5ff]">
-            <ShieldCheck size={16} strokeWidth={2.5} />
-          </span>
+          <img src="/logo.png" alt="TrustedAccounts" className="h-8 w-8 rounded-xl shadow-[4px_4px_0_#b9d5ff]" />
           <span className="text-[13px] font-extrabold tracking-[-0.06em] text-blue-600 sm:text-sm">
             TrustedAccounts
           </span>

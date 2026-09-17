@@ -10,9 +10,9 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <div className="min-h-screen bg-[#f5f7fb]">
+    <div className="min-h-screen bg-[#f5f7fb] dark:bg-[#0f172a]">
       <Sidebar />
-      
+
       <main className="lg:ml-[280px] transition-all duration-300">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

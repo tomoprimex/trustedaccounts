@@ -44,23 +44,23 @@ export default function AdminDashboard() {
       value: stats?.totalAccounts?.toString() || "0",
       change: "+12%",
       icon: Globe,
-      gradient: "from-blue-800 to-indigo-900",
-      glow: "shadow-blue-900/20",
+      gradient: "from-blue-600 to-blue-600",
+      glow: "shadow-blue-600/20",
     },
     {
       name: "Total Users",
       value: stats?.totalCustomers?.toString() || "0",
       change: "+8%",
       icon: Users,
-      gradient: "from-indigo-800 to-blue-900",
-      glow: "shadow-indigo-900/20",
+      gradient: "from-blue-600 to-blue-600",
+      glow: "shadow-blue-600/20",
     },
     {
       name: "Revenue",
       value: `₦${((stats?.totalRevenue || 0) / 100).toLocaleString()}`,
       change: "+23%",
       icon: DollarSign,
-      gradient: "from-slate-800 to-blue-900",
+      gradient: "from-slate-800 to-blue-600",
       glow: "shadow-slate-900/20",
     },
     {
@@ -68,8 +68,8 @@ export default function AdminDashboard() {
       value: stats?.totalOrders?.toString() || "0",
       change: "+15%",
       icon: Activity,
-      gradient: "from-blue-900 to-indigo-900",
-      glow: "shadow-blue-900/20",
+      gradient: "from-blue-600 to-blue-600",
+      glow: "shadow-blue-600/20",
     },
   ];
 
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </AdminLayout>
     );
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
             <div className="p-2 bg-gradient-to-br from-blue-800 to-indigo-900 rounded-xl">
               <Sparkles size={20} className="text-white" />
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-900 to-indigo-900 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
               Welcome back, Admin
             </h1>
           </div>
@@ -125,7 +125,7 @@ export default function AdminDashboard() {
                   <div className={`p-3 rounded-2xl bg-gradient-to-br ${stat.gradient} ${stat.glow} shadow-lg`}>
                     <stat.icon size={24} className="text-white" />
                   </div>
-                  <div className="flex items-center gap-1 text-blue-900 text-sm font-semibold bg-blue-50 px-2 py-1 rounded-full">
+                  <div className="flex items-center gap-1 text-blue-600 text-sm font-semibold bg-blue-50 px-2 py-1 rounded-full">
                     <ArrowUpRight size={16} />
                     {stat.change}
                   </div>
@@ -150,7 +150,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-slate-800">Top Platforms</h2>
                 <div className="p-2 bg-blue-50 rounded-xl">
-                  <TrendingUp size={20} className="text-blue-900" />
+                  <TrendingUp size={20} className="text-blue-600" />
                 </div>
               </div>
               {stats?.topPlatforms && stats.topPlatforms.length > 0 ? (
@@ -163,14 +163,14 @@ export default function AdminDashboard() {
                       transition={{ duration: 0.3, delay: 0.5 + index * 0.05 }}
                       className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border border-blue-100/50 hover:border-blue-200/50 transition-all backdrop-blur-sm"
                     >
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-800 to-indigo-900 flex items-center justify-center text-white font-bold text-sm">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
                         {index + 1}
                       </div>
                       <div className="flex-1">
                         <p className="font-semibold text-slate-800 capitalize">{platform.platform}</p>
                         <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
                           <div 
-                            className="bg-gradient-to-r from-blue-800 to-indigo-900 h-2 rounded-full transition-all duration-500"
+                            className="bg-gradient-to-r from-blue-600 to-blue-600 h-2 rounded-full transition-all duration-500"
                             style={{ width: `${(platform.count / (stats.topPlatforms[0]?.count || 1)) * 100}%` }}
                           />
                         </div>
@@ -196,7 +196,7 @@ export default function AdminDashboard() {
           transition={{ duration: 0.5, delay: 0.6 }}
         >
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-800/10 to-blue-900/10 rounded-3xl blur-xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-800/10 to-blue-600/10 rounded-3xl blur-xl" />
             <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-lg">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-slate-800">Monthly Revenue</h2>
@@ -218,7 +218,7 @@ export default function AdminDashboard() {
                         transition={{ duration: 0.5, delay: 0.7 + index * 0.05 }}
                         className="flex flex-col items-center gap-2"
                       >
-                        <div className="w-full bg-gradient-to-t from-blue-800 to-indigo-900 rounded-t-lg relative group">
+                        <div className="w-full bg-gradient-to-t from-blue-600 to-blue-600 rounded-t-lg relative group">
                           <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                             ₦{(value / 100).toLocaleString()}
                           </div>

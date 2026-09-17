@@ -23,37 +23,37 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? "border-b border-slate-200/70 bg-white/85 shadow-[0_8px_30px_rgba(30,58,138,0.06)] backdrop-blur-xl" : "bg-transparent"}`}>
+    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? "border-b border-slate-200/70 bg-white/85 shadow-[0_8px_30px_rgba(30,101,243,0.06)] backdrop-blur-xl" : "bg-transparent"}`}>
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-6">
         <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-blue-900 to-indigo-900 text-white shadow-[4px_4px_0_#b9d5ff]">
+          <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-600 text-white shadow-[4px_4px_0_#b9d5ff]">
             <ShieldCheck size={16} strokeWidth={2.5} />
           </span>
-          <span className="text-[13px] font-extrabold tracking-[-0.06em] text-blue-900 sm:text-sm">
-            Trusted<span className="text-blue-600">Accounts</span>
+          <span className="text-[13px] font-extrabold tracking-[-0.06em] text-blue-600 sm:text-sm">
+            TrustedAccounts
           </span>
         </Link>
         <div className="hidden items-center gap-6 md:flex">
           {links.map((link) => (
-            <a key={link.href} href={link.href} className="text-[10px] font-bold text-slate-500 transition-colors hover:text-blue-900">
+            <a key={link.href} href={link.href} className="text-[10px] font-bold text-slate-500 transition-colors hover:text-blue-600">
               {link.label}
             </a>
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/login" className="hidden text-[10px] font-bold text-slate-500 hover:text-blue-900 sm:block">
+          <Link href="/login" className="hidden text-[10px] font-bold text-slate-500 hover:text-blue-600 sm:block">
             Sign in
           </Link>
-          <Link 
-            href="/signup" 
-            className="rounded-lg bg-gradient-to-r from-blue-900 to-indigo-900 px-3 py-2 text-[10px] font-extrabold text-white shadow-lg shadow-blue-900/15 transition hover:-translate-y-0.5 hover:from-blue-800 hover:to-indigo-800"
+          <Link
+            href="/signup"
+            className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-600 px-3 py-2 text-[10px] font-extrabold text-white shadow-lg shadow-blue-600/15 transition hover:-translate-y-0.5 hover:from-blue-500 hover:to-blue-500"
           >
             Browse accounts
           </Link>
-          <button 
-            type="button" 
-            className="grid h-8 w-8 place-items-center text-blue-900 md:hidden" 
-            aria-label={open ? "Close menu" : "Open menu"} 
+          <button
+            type="button"
+            className="grid h-8 w-8 place-items-center text-blue-600 md:hidden"
+            aria-label={open ? "Close menu" : "Open menu"}
             onClick={() => setOpen(!open)}
           >
             {open ? <X size={18} /> : <Menu size={18} />}

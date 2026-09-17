@@ -102,7 +102,7 @@ export default function AdminSettingsPage() {
             <div className="p-2 bg-gradient-to-br from-blue-800 to-indigo-900 rounded-xl">
               <Settings size={20} className="text-white" />
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-900 to-indigo-900 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
               Settings
             </h1>
           </div>
@@ -167,7 +167,7 @@ export default function AdminSettingsPage() {
                               onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
                               rows={'rows' in field ? field.rows : 3}
                               placeholder={'placeholder' in field ? field.placeholder : ''}
-                              className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all resize-none"
+                              className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all resize-none"
                             />
                           </div>
                         ) : (
@@ -180,7 +180,7 @@ export default function AdminSettingsPage() {
                               value={settings[field.key as keyof typeof settings] as string}
                               onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
                               placeholder={'placeholder' in field ? field.placeholder : ''}
-                              className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                              className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                             />
                           </div>
                         )}
@@ -205,7 +205,7 @@ export default function AdminSettingsPage() {
             whileTap={{ scale: 0.98 }}
             onClick={handleSave}
             disabled={loading}
-            className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-800 to-indigo-900 text-white rounded-2xl font-semibold shadow-lg shadow-blue-900/25 hover:shadow-blue-900/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-600 text-white rounded-2xl font-semibold shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Sparkles size={20} />
             {loading ? 'Saving...' : 'Save Settings'}

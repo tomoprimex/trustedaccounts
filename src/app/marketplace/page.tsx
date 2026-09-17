@@ -85,7 +85,7 @@ export default function MarketplacePage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       </DashboardLayout>
     );
@@ -101,10 +101,10 @@ export default function MarketplacePage() {
           className="mb-3"
         >
           <div className="flex items-center gap-2 mb-1">
-            <div className="p-1.5 bg-gradient-to-br from-blue-900 to-indigo-900 rounded-lg">
+            <div className="p-1.5 bg-gradient-to-br from-blue-600 to-blue-600 rounded-lg">
               <ShoppingCart size={14} className="text-white" />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-indigo-900 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
               Marketplace
             </h1>
           </div>
@@ -118,7 +118,7 @@ export default function MarketplacePage() {
           transition={{ delay: 0.05 }}
         >
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-indigo-900/10 rounded-xl blur-md" />
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md" />
             <div className="relative flex items-center gap-2 bg-white/80 backdrop-blur-xl rounded-xl p-2 border border-white/30 shadow-sm">
               <Search size={12} className="text-slate-400" />
               <input
@@ -147,10 +147,10 @@ export default function MarketplacePage() {
               transition={{ delay: 0.15 + index * 0.02 }}
               className="relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-indigo-900/10 rounded-xl blur-md" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md" />
               <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2 border border-white/30 shadow-sm">
                 {/* Platform Icon */}
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-900 to-indigo-900 flex items-center justify-center text-sm mb-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-600 flex items-center justify-center text-sm mb-2">
                   {platformIcons[account.platform] || "🌐"}
                 </div>
 
@@ -178,7 +178,7 @@ export default function MarketplacePage() {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handlePurchase(account)}
                   disabled={processing}
-                  className="w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-lg text-[9px] font-medium shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-gradient-to-r from-blue-600 to-blue-600 text-white rounded-lg text-[9px] font-medium shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ShoppingCart size={8} />
                   Buy
@@ -196,7 +196,7 @@ export default function MarketplacePage() {
             className="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-white/30 text-center"
           >
             <div className="p-2 bg-blue-50 rounded-full w-fit mx-auto mb-2">
-              <ShoppingCart size={20} className="text-blue-900" />
+              <ShoppingCart size={20} className="text-blue-600" />
             </div>
             <p className="text-xs text-slate-500">No accounts available</p>
             <p className="text-[10px] text-slate-400 mt-1">Check back later for new listings</p>

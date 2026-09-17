@@ -13,7 +13,7 @@ const assurances = [
 
 export function Pricing() {
   return (
-    <section id="pricing" className="relative overflow-hidden bg-gradient-to-br from-blue-900 to-indigo-900 px-4 py-12 text-white lg:px-6 lg:py-16">
+    <section id="pricing" className="relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-600 px-4 py-12 text-white lg:px-6 lg:py-16">
       <div className="absolute -right-24 -top-28 h-96 w-96 rounded-full border border-blue-300/20" />
       <div className="absolute -right-12 -top-16 h-72 w-72 rounded-full border border-blue-300/10" />
       <div className="relative mx-auto max-w-7xl">
@@ -31,7 +31,7 @@ export function Pricing() {
           <FadeIn delay={.1}>
             <Link 
               href="/signup" 
-              className="group inline-flex items-center gap-6 rounded-xl bg-white px-4 py-3 text-[10px] font-extrabold text-blue-900 shadow-xl transition hover:-translate-y-1 hover:bg-blue-50"
+              className="group inline-flex items-center gap-6 rounded-xl bg-white px-4 py-3 text-[10px] font-extrabold text-blue-600 shadow-xl transition hover:-translate-y-1 hover:bg-blue-50"
             >
               Browse available accounts 
               <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />

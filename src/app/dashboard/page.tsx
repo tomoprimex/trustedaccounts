@@ -10,7 +10,7 @@ import { ShoppingBag, Package, TrendingUp, Clock, Sparkles, ChevronRight } from 
 const supabase = createClient();
 
 const statusConfig = {
-  completed: { label: "Completed", color: "bg-gradient-to-r from-blue-900 to-indigo-900 text-white" },
+  completed: { label: "Completed", color: "bg-gradient-to-r from-blue-600 to-blue-600 text-white" },
   pending: { label: "Pending", color: "bg-gradient-to-r from-amber-400 to-yellow-500 text-white" },
   processing: { label: "Processing", color: "bg-gradient-to-r from-blue-600 to-blue-700 text-white" },
   failed: { label: "Failed", color: "bg-gradient-to-r from-red-400 to-red-500 text-white" },
@@ -43,7 +43,7 @@ export default function DashboardPage() {
   if (loading) return (
     <DashboardLayout>
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-b-blue-900" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-b-blue-600" />
       </div>
     </DashboardLayout>
   );
@@ -53,19 +53,19 @@ export default function DashboardPage() {
       name: "Total Orders",
       value: stats?.totalOrders?.toString() || "0",
       icon: ShoppingBag,
-      gradient: "from-blue-900 to-indigo-900",
+      gradient: "from-blue-600 to-blue-600",
     },
     {
       name: "Purchased Accounts",
       value: purchasedAccounts.length.toString(),
       icon: Package,
-      gradient: "from-indigo-900 to-blue-900",
+      gradient: "from-blue-600 to-blue-600",
     },
     {
       name: "Total Spent",
       value: `₦${(stats?.totalRevenue || 0).toLocaleString()}`,
       icon: TrendingUp,
-      gradient: "from-slate-800 to-blue-900",
+      gradient: "from-slate-800 to-blue-600",
     },
   ];
 
@@ -79,10 +79,10 @@ export default function DashboardPage() {
           className="mb-4"
         >
           <div className="flex items-center gap-2 mb-1">
-            <div className="p-1.5 bg-gradient-to-br from-blue-900 to-indigo-900 rounded-lg">
+            <div className="p-1.5 bg-gradient-to-br from-blue-600 to-blue-600 rounded-lg">
               <Sparkles size={14} className="text-white" />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-indigo-900 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
               Dashboard
             </h1>
           </div>
@@ -99,7 +99,7 @@ export default function DashboardPage() {
               transition={{ delay: index * 0.05 }}
               className="relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-indigo-900/10 rounded-xl blur-md" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md" />
               <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-3 border border-white/30 shadow-sm h-full min-h-[80px] flex flex-col justify-center">
                 <div className={`p-1.5 rounded-lg bg-gradient-to-br ${stat.gradient} mb-2 w-fit`}>
                   <stat.icon size={12} className="text-white" />
@@ -120,14 +120,14 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-bold text-slate-900">Recent Orders</h2>
             <div className="p-1 bg-blue-50 rounded-lg">
-              <Clock size={12} className="text-blue-900" />
+              <Clock size={12} className="text-blue-600" />
             </div>
           </div>
           
           {orders.length === 0 ? (
             <div className="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-white/30 text-center">
               <div className="p-2 bg-blue-50 rounded-full w-fit mx-auto mb-2">
-                <ShoppingBag size={20} className="text-blue-900" />
+                <ShoppingBag size={20} className="text-blue-600" />
               </div>
               <p className="text-xs text-slate-500">No orders yet</p>
             </div>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
                   transition={{ delay: 0.2 + index * 0.03 }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-900/5 to-indigo-900/5 rounded-xl blur-sm" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-blue-600/5 rounded-xl blur-sm" />
                   <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-white/30 shadow-sm">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0">
@@ -168,8 +168,8 @@ export default function DashboardPage() {
           >
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-sm font-bold text-slate-900">Recent Purchases</h2>
-              <div className="p-1 bg-indigo-50 rounded-lg">
-                <Package size={12} className="text-indigo-900" />
+              <div className="p-1 bg-blue-50 rounded-lg">
+                <Package size={12} className="text-blue-600" />
               </div>
             </div>
             
@@ -182,10 +182,10 @@ export default function DashboardPage() {
                   transition={{ delay: 0.3 + index * 0.03 }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/5 to-blue-900/5 rounded-xl blur-sm" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-blue-600/5 rounded-xl blur-sm" />
                   <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-white/30 shadow-sm">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-900 to-indigo-900 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-600 to-blue-600 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
                         {purchase.account?.platform?.charAt(0)?.toUpperCase() || 'A'}
                       </div>
                       <div className="flex-1 min-w-0">

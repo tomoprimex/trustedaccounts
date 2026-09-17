@@ -55,7 +55,7 @@ export default function AccountsPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       </DashboardLayout>
     );
@@ -71,10 +71,10 @@ export default function AccountsPage() {
           className="mb-3"
         >
           <div className="flex items-center gap-2 mb-1">
-            <div className="p-1.5 bg-gradient-to-br from-blue-900 to-indigo-900 rounded-lg">
+            <div className="p-1.5 bg-gradient-to-br from-blue-600 to-blue-600 rounded-lg">
               <Package size={14} className="text-white" />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-indigo-900 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
               My Accounts
             </h1>
           </div>
@@ -89,7 +89,7 @@ export default function AccountsPage() {
             className="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-white/30 text-center"
           >
             <div className="p-2 bg-blue-50 rounded-full w-fit mx-auto mb-2">
-              <Key size={20} className="text-blue-900" />
+              <Key size={20} className="text-blue-600" />
             </div>
             <p className="text-xs text-slate-500">No purchased accounts yet</p>
             <p className="text-[10px] text-slate-400 mt-1">Visit the marketplace to purchase accounts</p>
@@ -108,18 +108,18 @@ export default function AccountsPage() {
                   transition={{ delay: index * 0.03 }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-indigo-900/10 rounded-xl blur-md" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md" />
                   <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-white/30 shadow-sm">
                     {/* Card Header */}
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-900 to-indigo-900 flex items-center justify-center text-sm flex-shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-600 flex items-center justify-center text-sm flex-shrink-0">
                         {platformIcons[account.platform] || "🌐"}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="text-[11px] font-bold text-slate-900 truncate">{account.username}</h3>
                         <p className="text-[9px] text-slate-500 truncate">{account.email}</p>
                       </div>
-                      <div className="px-1.5 py-0.5 rounded-md bg-gradient-to-r from-blue-900 to-indigo-900 text-white text-[8px] font-bold flex-shrink-0 capitalize">
+                      <div className="px-1.5 py-0.5 rounded-md bg-gradient-to-r from-blue-600 to-blue-600 text-white text-[8px] font-bold flex-shrink-0 capitalize">
                         {account.platform}
                       </div>
                     </div>
@@ -128,7 +128,7 @@ export default function AccountsPage() {
                     <div className="flex items-center justify-between mb-2">
                       <button
                         onClick={() => toggleVisibility(purchase.id)}
-                        className="flex items-center gap-1 text-[10px] text-blue-900 font-medium"
+                        className="flex items-center gap-1 text-[10px] text-blue-600 font-medium"
                       >
                         {isVisible ? <EyeOff size={10} /> : <Eye size={10} />}
                         {isVisible ? 'Hide' : 'Show'} Credentials

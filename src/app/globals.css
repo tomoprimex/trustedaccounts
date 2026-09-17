@@ -48,7 +48,7 @@ textarea {
 }
 
 :focus-visible {
-  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline: 3px solid rgba(30, 101, 243, 0.35);
   outline-offset: 2px;
 }
 
@@ -89,8 +89,8 @@ textarea {
   }
 
   .app-input:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    border-color: #1e65f3;
+    box-shadow: 0 0 0 3px rgba(30, 101, 243, 0.1);
     outline: none;
   }
 
@@ -125,6 +125,6 @@ textarea {
   }
 
   .auth-shell form a:hover {
-    color: #2563eb !important;
+    color: #1e65f3 !important;
   }
 }

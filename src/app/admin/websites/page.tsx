@@ -7,7 +7,7 @@ import { Plus, Edit, Trash2, Search, Globe, DollarSign, Sparkles, Zap } from "lu
 import { getAccounts, createAccount, updateAccount, deleteAccount } from "@/lib/supabase/queries";
 
 const statusConfig = {
-  available: { label: "Available", color: "bg-gradient-to-r from-blue-800 to-indigo-900 text-white", icon: Globe },
+  available: { label: "Available", color: "bg-gradient-to-r from-blue-600 to-blue-600 text-white", icon: Globe },
   reserved: { label: "Reserved", color: "bg-gradient-to-r from-amber-400 to-yellow-500 text-white", icon: Zap },
   sold: { label: "Sold", color: "bg-gradient-to-r from-slate-600 to-slate-700 text-white", icon: DollarSign },
   removed: { label: "Removed", color: "bg-gradient-to-r from-red-400 to-red-500 text-white", icon: Trash2 },
@@ -153,7 +153,7 @@ export default function WebsitesPage() {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </AdminLayout>
     );
@@ -179,7 +179,7 @@ export default function WebsitesPage() {
               <Globe size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-900 to-indigo-900 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
                 Accounts
               </h1>
               <p className="text-slate-500 text-lg">Manage platform accounts</p>
@@ -189,7 +189,7 @@ export default function WebsitesPage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleCreate}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-800 to-indigo-900 text-white rounded-2xl font-semibold shadow-lg shadow-blue-900/25 hover:shadow-blue-900/40 transition-all"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-600 text-white rounded-2xl font-semibold shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transition-all"
           >
             <Plus size={20} />
             Add Account
@@ -271,7 +271,7 @@ export default function WebsitesPage() {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleEdit(account)}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-800 to-indigo-900 text-white rounded-xl font-medium text-sm hover:from-blue-900 hover:to-indigo-900 transition-all"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-600 text-white rounded-xl font-medium text-sm hover:from-blue-500 hover:to-blue-500 transition-all"
                     >
                       <Edit size={16} />
                       Edit
@@ -331,7 +331,7 @@ export default function WebsitesPage() {
                 <select
                   value={formData.platform}
                   onChange={(e) => setFormData({ ...formData, platform: e.target.value as any })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 >
                   <option value="facebook">Facebook</option>
                   <option value="instagram">Instagram</option>
@@ -348,7 +348,7 @@ export default function WebsitesPage() {
                   required
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 />
               </div>
               <div>
@@ -358,7 +358,7 @@ export default function WebsitesPage() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 />
               </div>
               <div>
@@ -368,7 +368,7 @@ export default function WebsitesPage() {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 />
               </div>
               <div>
@@ -377,7 +377,7 @@ export default function WebsitesPage() {
                   type="tel"
                   value={formData.recovery_phone}
                   onChange={(e) => setFormData({ ...formData, recovery_phone: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 />
               </div>
               <div>
@@ -386,7 +386,7 @@ export default function WebsitesPage() {
                   type="text"
                   value={formData.two_factor_secret}
                   onChange={(e) => setFormData({ ...formData, two_factor_secret: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 />
               </div>
               <div>
@@ -396,7 +396,7 @@ export default function WebsitesPage() {
                   required
                   value={formData.price_cents}
                   onChange={(e) => setFormData({ ...formData, price_cents: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 />
               </div>
               <div>
@@ -404,7 +404,7 @@ export default function WebsitesPage() {
                 <select
                   value={formData.currency}
                   onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 >
                   <option value="USD">USD</option>
                   <option value="NGN">NGN</option>
@@ -416,7 +416,7 @@ export default function WebsitesPage() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={2}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all resize-none"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all resize-none"
                 />
               </div>
               <div>
@@ -424,7 +424,7 @@ export default function WebsitesPage() {
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 >
                   <option value="available">Available</option>
                   <option value="reserved">Reserved</option>
@@ -447,7 +447,7 @@ export default function WebsitesPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="flex-1 px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-800 to-indigo-900 text-white font-semibold hover:from-blue-900 hover:to-indigo-900 transition-all shadow-lg shadow-blue-900/25"
+                  className="flex-1 px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-600 text-white font-semibold hover:from-blue-500 hover:to-blue-500 transition-all shadow-lg shadow-blue-600/25"
                 >
                   {editingAccount ? 'Update' : 'Create'}
                 </motion.button>

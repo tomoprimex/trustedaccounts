@@ -9,12 +9,12 @@ const columns = [
 
 export function Footer() {
   return (
-    <footer className="bg-gradient-to-br from-blue-900 to-indigo-900 px-4 py-10 text-white lg:px-6 lg:py-12">
+    <footer className="bg-gradient-to-br from-blue-600 to-blue-600 px-4 py-10 text-white lg:px-6 lg:py-12">
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
           <div>
             <Link href="/" className="inline-flex items-center gap-2">
-              <span className="grid h-8 w-8 place-items-center rounded-xl bg-white text-blue-900">
+              <span className="grid h-8 w-8 place-items-center rounded-xl bg-white text-blue-600">
                 <ShieldCheck size={16} />
               </span>
               <span className="text-sm font-extrabold tracking-[-.06em]">

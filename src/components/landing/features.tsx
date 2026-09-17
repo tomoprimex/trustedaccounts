@@ -18,10 +18,10 @@ export function Features() {
     <section id="features" className="relative bg-white px-4 py-12 lg:px-6 lg:py-16">
       <div className="mx-auto max-w-7xl">
         <FadeIn className="max-w-2xl">
-          <p className="text-[10px] font-bold uppercase tracking-[.18em] text-blue-900">Built around trust</p>
-          <h2 className="mt-3 text-2xl font-extrabold leading-[1.02] tracking-[-.07em] bg-gradient-to-r from-blue-900 to-indigo-900 bg-clip-text text-transparent sm:text-3xl">
+          <p className="text-[10px] font-bold uppercase tracking-[.18em] text-blue-600">Built around trust</p>
+          <h2 className="mt-3 text-2xl font-extrabold leading-[1.02] tracking-[-.07em] bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent sm:text-3xl">
             Everything important,<br />
-            <span className="font-serif font-semibold italic text-blue-900">visible upfront.</span>
+            <span className="font-serif font-semibold italic text-blue-600">visible upfront.</span>
           </h2>
           <p className="mt-4 text-xs leading-6 text-slate-500 sm:text-sm">
             A marketplace should make the important details easy to understand. TrustedAccounts keeps quality, price, and delivery clear from the first click.
@@ -35,7 +35,7 @@ export function Features() {
                 className="group relative min-h-[140px] bg-white p-4 transition-shadow hover:z-10 hover:shadow-lg sm:p-5"
               >
                 <div className="flex items-start justify-between">
-                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-blue-50 text-blue-900 transition-colors group-hover:bg-gradient-to-br group-hover:from-blue-900 group-hover:to-indigo-900 group-hover:text-white">
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-blue-50 text-blue-600 transition-colors group-hover:bg-gradient-to-br group-hover:from-blue-600 group-hover:to-blue-600 group-hover:text-white">
                     <Icon size={14} />
                   </span>
                   <span className="font-mono text-[9px] font-bold text-slate-300">{number}</span>

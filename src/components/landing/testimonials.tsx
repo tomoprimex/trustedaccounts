@@ -15,10 +15,10 @@ export function Testimonials() {
     <section id="testimonials" className="bg-white px-4 py-12 lg:px-6 lg:py-16">
       <div className="mx-auto max-w-7xl">
         <FadeIn className="mx-auto max-w-2xl text-center">
-          <p className="text-[10px] font-bold uppercase tracking-[.18em] text-blue-900">Real buyers, real experiences</p>
-          <h2 className="mt-3 text-2xl font-extrabold tracking-[-.07em] bg-gradient-to-r from-blue-900 to-indigo-900 bg-clip-text text-transparent sm:text-3xl">
+          <p className="text-[10px] font-bold uppercase tracking-[.18em] text-blue-600">Real buyers, real experiences</p>
+          <h2 className="mt-3 text-2xl font-extrabold tracking-[-.07em] bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent sm:text-3xl">
             A marketplace people<br />
-            <span className="font-serif font-semibold italic text-blue-900">come back to.</span>
+            <span className="font-serif font-semibold italic text-blue-600">come back to.</span>
           </h2>
         </FadeIn>
         <div className="mt-8 grid gap-4 lg:grid-cols-3">
@@ -26,11 +26,11 @@ export function Testimonials() {
             <FadeIn key={testimonial.name} delay={index * .1}>
               <motion.figure 
                 whileHover={{ y: -5 }} 
-                className="flex h-full flex-col justify-between rounded-xl border border-slate-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 transition-shadow hover:shadow-lg hover:shadow-blue-900/10 sm:p-5"
+                className="flex h-full flex-col justify-between rounded-xl border border-slate-200 bg-gradient-to-br from-blue-50 to-blue-50 p-4 transition-shadow hover:shadow-lg hover:shadow-blue-600/10 sm:p-5"
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <div className="flex gap-0.5 text-blue-900">
+                    <div className="flex gap-0.5 text-blue-600">
                       {Array.from({ length: 5 }).map((_, star) => <Star key={star} size={10} fill="currentColor" />)}
                     </div>
                     <Quote size={18} className="text-blue-200" />
@@ -40,7 +40,7 @@ export function Testimonials() {
                   </blockquote>
                 </div>
                 <figcaption className="mt-5 flex items-center gap-2 border-t border-slate-200 pt-3">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-blue-100 text-[10px] font-extrabold text-blue-900">
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-blue-100 text-[10px] font-extrabold text-blue-600">
                     {testimonial.initials}
                   </span>
                   <span>

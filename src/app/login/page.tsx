@@ -41,15 +41,15 @@ export default function LoginPage() {
       >
         {/* Card */}
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-indigo-900/20 rounded-2xl blur-xl" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-blue-600/20 rounded-2xl blur-xl" />
           <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-white/30 shadow-lg">
             {/* Header */}
             <div className="text-center mb-4">
               <div className="flex items-center justify-center gap-2 mb-2">
-                <div className="p-1.5 bg-gradient-to-br from-blue-900 to-indigo-900 rounded-lg">
+                <div className="p-1.5 bg-gradient-to-br from-blue-600 to-blue-600 rounded-lg">
                   <Sparkles size={12} className="text-white" />
                 </div>
-                <h1 className="text-lg font-bold bg-gradient-to-r from-blue-900 to-indigo-900 bg-clip-text text-transparent">
+                <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
                   Welcome Back
                 </h1>
               </div>
@@ -73,7 +73,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-8 pr-3 py-2 bg-white/50 backdrop-blur border border-white/30 rounded-lg text-[10px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                    className="w-full pl-8 pr-3 py-2 bg-white/50 backdrop-blur border border-white/30 rounded-lg text-[10px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                   />
                 </div>
               </motion.div>
@@ -93,7 +93,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full pl-8 pr-8 py-2 bg-white/50 backdrop-blur border border-white/30 rounded-lg text-[10px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                    className="w-full pl-8 pr-8 py-2 bg-white/50 backdrop-blur border border-white/30 rounded-lg text-[10px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                   />
                   <button
                     type="button"
@@ -112,7 +112,7 @@ export default function LoginPage() {
                 transition={{ delay: 0.2 }}
                 className="text-right"
               >
-                <Link href="/forgot-password" className="text-[9px] text-blue-900 hover:text-blue-800 transition-colors">
+                <Link href="/forgot-password" className="text-[9px] text-blue-600 hover:text-blue-500 transition-colors">
                   Forgot password?
                 </Link>
               </motion.div>
@@ -141,7 +141,7 @@ export default function LoginPage() {
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-1.5 py-2 bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-lg text-[10px] font-semibold shadow-lg shadow-blue-900/20 hover:shadow-blue-900/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-1.5 py-2 bg-gradient-to-r from-blue-600 to-blue-600 text-white rounded-lg text-[10px] font-semibold shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
@@ -166,7 +166,7 @@ export default function LoginPage() {
             >
               <p className="text-[9px] text-slate-500">
                 Don't have an account?{' '}
-                <Link href="/signup" className="text-[9px] font-medium text-blue-900 hover:text-blue-800 transition-colors">
+                <Link href="/signup" className="text-[9px] font-medium text-blue-600 hover:text-blue-500 transition-colors">
                   Sign up
                 </Link>
               </p>

@@ -56,7 +56,7 @@ export default function SettingsPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       </DashboardLayout>
     );
@@ -128,10 +128,10 @@ export default function SettingsPage() {
           className="mb-3"
         >
           <div className="flex items-center gap-2 mb-1">
-            <div className="p-1.5 bg-gradient-to-br from-blue-900 to-indigo-900 rounded-lg">
+            <div className="p-1.5 bg-gradient-to-br from-blue-600 to-blue-600 rounded-lg">
               <Sparkles size={14} className="text-white" />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-indigo-900 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
               Settings
             </h1>
           </div>
@@ -149,11 +149,11 @@ export default function SettingsPage() {
               transition={{ delay: sectionIndex * 0.05 }}
               className="relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-indigo-900/10 rounded-xl blur-md" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md" />
               <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-3 border border-white/30 shadow-sm">
                 {/* Section Header */}
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="p-1.5 bg-gradient-to-br from-blue-900 to-indigo-900 rounded-lg">
+                  <div className="p-1.5 bg-gradient-to-br from-blue-600 to-blue-600 rounded-lg">
                     <SectionIcon size={12} className="text-white" />
                   </div>
                   <h2 className="text-sm font-bold text-slate-900">{section.title}</h2>
@@ -181,7 +181,7 @@ export default function SettingsPage() {
                           type="text"
                           value={item.value}
                           onChange={(e) => item.onChange?.(e.target.value)}
-                          className="w-24 px-2 py-1 bg-white/50 backdrop-blur border border-white/30 rounded-lg text-[9px] text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                          className="w-24 px-2 py-1 bg-white/50 backdrop-blur border border-white/30 rounded-lg text-[9px] text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                         />
                       )}
                       
@@ -190,7 +190,7 @@ export default function SettingsPage() {
                           whileTap={{ scale: 0.95 }}
                           onClick={() => (item as { onChange: () => void }).onChange()}
                           className={`w-8 h-4 rounded-full p-0.5 transition-colors flex-shrink-0 ${
-                            item.value ? "bg-gradient-to-r from-blue-900 to-indigo-900" : "bg-slate-300"
+                            item.value ? "bg-gradient-to-r from-blue-600 to-blue-600" : "bg-slate-300"
                           }`}
                         >
                           <motion.div
@@ -223,7 +223,7 @@ export default function SettingsPage() {
             whileTap={{ scale: 0.98 }}
             onClick={handleSave}
             disabled={saving}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-xl font-semibold shadow-lg shadow-blue-900/20 disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/20 disabled:opacity-50"
           >
             <Sparkles size={12} />
             {saving ? 'Saving...' : 'Save Changes'}

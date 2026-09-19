@@ -42,7 +42,7 @@ export function Sidebar() {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed left-0 top-0 z-50 h-full w-[min(86vw,320px)] overflow-hidden bg-[#1e65f3] text-white shadow-2xl lg:hidden dark:bg-[#1e1b4b]"
+            className="fixed left-0 top-0 z-50 h-full w-[min(86vw,320px)] overflow-hidden bg-[#0a2342] text-white shadow-2xl lg:hidden dark:bg-[#0a1929]"
           >
             <div className="flex h-full flex-col">
               <div className="border-b border-white/10 px-4 py-4 sm:px-5 relative">
@@ -51,8 +51,8 @@ export function Sidebar() {
                     <img src="/logo.png" alt="TrustedAccounts" className="h-8 w-8 object-contain" />
                   </div>
                   <span>
-                    <strong className="block text-base tracking-tight">TrustedAccounts</strong>
-                    <small className="block text-[10px] text-white/55">Customer workspace</small>
+                    <strong className="block text-base tracking-tight font-extrabold text-white">TrustedAccounts</strong>
+                    <small className="block text-[10px] text-white/70 font-medium">Customer workspace</small>
                   </span>
                 </Link>
                 <button 
@@ -67,9 +67,9 @@ export function Sidebar() {
               <nav className="flex-1 space-y-1 overflow-y-auto p-3 sm:p-4">
                 {navItems.map((item) => (
                   <Link key={item.id} href={item.href} onClick={() => setMobileOpen(false)}>
-                    <motion.span 
-                      whileHover={{ x: 3 }} 
-                      className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-bold transition ${active === item.id ? "bg-white/15 text-white" : "text-white/65 hover:bg-white/10 hover:text-white"}`}
+                    <motion.span
+                      whileHover={{ x: 3 }}
+                      className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-extrabold transition ${active === item.id ? "bg-white/15 text-white" : "text-white/75 hover:bg-white/10 hover:text-white"}`}
                     >
                       <item.icon size={17} className="shrink-0" />
                       {item.label}
@@ -99,7 +99,7 @@ export function Sidebar() {
     <motion.aside 
       initial={false} 
       animate={{ width: collapsed ? 80 : 280 }} 
-      className="hidden lg:flex fixed left-0 top-0 z-30 h-full bg-[#1e65f3] text-white shadow-2xl dark:bg-[#1e1b4b]"
+      className="hidden lg:flex fixed left-0 top-0 z-30 h-full bg-[#0a2342] text-white shadow-2xl dark:bg-[#0a1929]"
     >
       <div className="flex h-full flex-col">
         <div className="border-b border-white/10 px-4 py-4 sm:px-5">
@@ -108,17 +108,17 @@ export function Sidebar() {
               <img src="/logo.png" alt="TrustedAccounts" className="h-8 w-8 object-contain" />
             </div>
             {!collapsed && <span>
-              <strong className="block text-base tracking-tight">TrustedAccounts</strong>
-              <small className="block text-[10px] text-white/55">Customer workspace</small>
+              <strong className="block text-base tracking-tight font-extrabold text-white">TrustedAccounts</strong>
+              <small className="block text-[10px] text-white/70 font-medium">Customer workspace</small>
             </span>}
           </Link>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3 sm:p-4">
           {navItems.map((item) => (
             <Link key={item.id} href={item.href}>
-              <motion.span 
-                whileHover={{ x: collapsed ? 0 : 3 }} 
-                className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-bold transition ${active === item.id ? "bg-white/15 text-white" : "text-white/65 hover:bg-white/10 hover:text-white"}`}
+              <motion.span
+                whileHover={{ x: collapsed ? 0 : 3 }}
+                className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-extrabold transition ${active === item.id ? "bg-white/15 text-white" : "text-white/75 hover:bg-white/10 hover:text-white"}`}
               >
                 <item.icon size={17} className="shrink-0" />
                 {!collapsed && item.label}

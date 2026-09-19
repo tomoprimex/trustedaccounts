@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import { User, Bell, Shield, Moon, Sun, Sparkles, ChevronRight } from "lucide-react";
+import { User, Shield, Moon, Sun, Sparkles, ChevronRight } from "lucide-react";
 import { getUserProfile, updateUserProfile } from "@/lib/supabase/queries";
+import { useTheme } from "@/components/theme-provider";
 
 export default function SettingsPage() {
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme, setTheme } = useTheme();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -87,20 +88,14 @@ export default function SettingsPage() {
       ]
     },
     {
-      title: "Preferences",
-      icon: Bell,
+      title: "Appearance",
+      icon: Moon,
       items: [
         {
           label: "Dark Mode",
           type: "toggle",
-          value: darkMode,
-          onChange: () => setDarkMode(!darkMode),
-        },
-        {
-          label: "Notifications",
-          type: "toggle",
-          value: true,
-          onChange: () => {},
+          value: theme === 'dark',
+          onChange: () => setTheme(theme === 'dark' ? 'light' : 'dark'),
         },
       ]
     },
@@ -131,11 +126,11 @@ export default function SettingsPage() {
             <div className="p-1.5 bg-gradient-to-br from-blue-600 to-blue-600 rounded-lg">
               <Sparkles size={14} className="text-white" />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-blue-500">
               Settings
             </h1>
           </div>
-          <p className="text-xs text-slate-500">Manage your account settings</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Manage your account settings</p>
         </motion.div>
 
         {/* Settings Sections */}
@@ -149,14 +144,14 @@ export default function SettingsPage() {
               transition={{ delay: sectionIndex * 0.05 }}
               className="relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md" />
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-3 border border-white/30 shadow-sm">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
+              <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-3 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm">
                 {/* Section Header */}
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-1.5 bg-gradient-to-br from-blue-600 to-blue-600 rounded-lg">
                     <SectionIcon size={12} className="text-white" />
                   </div>
-                  <h2 className="text-sm font-bold text-slate-900">{section.title}</h2>
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-white">{section.title}</h2>
                 </div>
 
                 {/* Section Items */}
@@ -167,30 +162,30 @@ export default function SettingsPage() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: sectionIndex * 0.05 + itemIndex * 0.02 }}
-                      className="flex items-center justify-between py-2 border-b border-slate-100 last:border-b-0"
+                      className="flex items-center justify-between py-2 border-b border-slate-100 last:border-b-0 dark:border-slate-700"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-medium text-slate-700">{item.label}</p>
+                        <p className="text-[10px] font-medium text-slate-700 dark:text-slate-300">{item.label}</p>
                         {item.type === 'readonly' && (
-                          <p className="text-[9px] text-slate-500 truncate">{item.value}</p>
+                          <p className="text-[9px] text-slate-500 truncate dark:text-slate-400">{item.value}</p>
                         )}
                       </div>
-                      
+
                       {item.type === 'input' && (
                         <input
                           type="text"
                           value={item.value}
                           onChange={(e) => item.onChange?.(e.target.value)}
-                          className="w-24 px-2 py-1 bg-white/50 backdrop-blur border border-white/30 rounded-lg text-[9px] text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+                          className="w-24 px-2 py-1 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-[9px] text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all dark:bg-slate-700/50 dark:text-white dark:border-blue-500/30"
                         />
                       )}
-                      
+
                       {item.type === 'toggle' && (
                         <motion.button
                           whileTap={{ scale: 0.95 }}
                           onClick={() => (item as { onChange: () => void }).onChange()}
                           className={`w-8 h-4 rounded-full p-0.5 transition-colors flex-shrink-0 ${
-                            item.value ? "bg-gradient-to-r from-blue-600 to-blue-600" : "bg-slate-300"
+                            item.value ? "bg-gradient-to-r from-blue-600 to-blue-600" : "bg-slate-300 dark:bg-slate-600"
                           }`}
                         >
                           <motion.div
@@ -200,9 +195,9 @@ export default function SettingsPage() {
                           />
                         </motion.button>
                       )}
-                      
+
                       {item.type === 'readonly' && (
-                        <ChevronRight size={10} className="text-slate-400 flex-shrink-0" />
+                        <ChevronRight size={10} className="text-slate-400 flex-shrink-0 dark:text-slate-500" />
                       )}
                     </motion.div>
                   ))}

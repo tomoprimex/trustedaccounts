@@ -1,19 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { ChevronRight, LayoutDashboard, LogOut, Menu, Package, Settings, Store, Users, X, ShoppingBag } from "lucide-react";
+import { ChevronRight, LayoutDashboard, LogOut, Menu, Package, Settings, Store, Users, X, ShoppingBag, Wallet, Eye, EyeOff } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getWalletBalance } from "@/lib/supabase/queries";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", id: "dashboard" },
   { icon: Store, label: "Marketplace", href: "/marketplace", id: "marketplace" },
   { icon: Package, label: "My Accounts", href: "/dashboard/accounts", id: "accounts" },
   { icon: ShoppingBag, label: "Orders", href: "/dashboard/orders", id: "orders" },
-  { icon: Users, label: "Customers", href: "/dashboard/customers", id: "customers" },
+  { icon: Wallet, label: "Wallet", href: "/dashboard/wallet", id: "wallet" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings", id: "settings" },
 ];
 
@@ -21,8 +22,25 @@ export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [balanceHidden, setBalanceHidden] = useState(true);
   const active = navItems.find((item) => pathname === item.href)?.id ?? "dashboard";
   const logout = async () => { await createClient().auth.signOut(); window.location.href = "/login"; };
+
+  useEffect(() => {
+    async function loadWalletBalance() {
+      try {
+        const { data: { user } } = await createClient().auth.getUser();
+        if (user) {
+          const wallet = await getWalletBalance(user.id);
+          setWalletBalance(wallet.balance_cents);
+        }
+      } catch (error) {
+        console.error('Error loading wallet balance:', error);
+      }
+    }
+    loadWalletBalance();
+  }, []);
 
   return <>
     <button type="button" aria-label="Open dashboard navigation" onClick={() => setMobileOpen(true)} className="fixed left-3 top-3 z-50 grid h-10 w-10 place-items-center rounded-xl bg-[#1e65f3] text-white shadow-lg lg:hidden"><Menu size={19} /></button>
@@ -55,6 +73,24 @@ export function Sidebar() {
                     <small className="block text-[10px] text-white/70 font-medium">Customer workspace</small>
                   </span>
                 </Link>
+                {/* Wallet Balance */}
+                <div className="flex items-center justify-between px-2 py-2">
+                  <div className="flex items-center gap-2">
+                    <Wallet size={14} className="text-white/70" />
+                    <span className="text-[10px] text-white/70 font-medium">Balance:</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-white">
+                      {balanceHidden ? '••••••' : `₦${(walletBalance / 100).toLocaleString()}`}
+                    </span>
+                    <button
+                      onClick={() => setBalanceHidden(!balanceHidden)}
+                      className="text-white/50 hover:text-white/80 transition-colors"
+                    >
+                      {balanceHidden ? <Eye size={12} /> : <EyeOff size={12} />}
+                    </button>
+                  </div>
+                </div>
                 <button 
                   type="button" 
                   aria-label="Close dashboard navigation" 
@@ -112,6 +148,26 @@ export function Sidebar() {
               <small className="block text-[10px] text-white/70 font-medium">Customer workspace</small>
             </span>}
           </Link>
+          {/* Wallet Balance */}
+          {!collapsed && (
+            <div className="flex items-center justify-between px-2 py-2">
+              <div className="flex items-center gap-2">
+                <Wallet size={14} className="text-white/70" />
+                <span className="text-[10px] text-white/70 font-medium">Balance:</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-white">
+                  {balanceHidden ? '••••••' : `₦${(walletBalance / 100).toLocaleString()}`}
+                </span>
+                <button
+                  onClick={() => setBalanceHidden(!balanceHidden)}
+                  className="text-white/50 hover:text-white/80 transition-colors"
+                >
+                  {balanceHidden ? <Eye size={12} /> : <EyeOff size={12} />}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3 sm:p-4">
           {navItems.map((item) => (

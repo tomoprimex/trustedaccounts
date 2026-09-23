@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Clock,
+  Wallet,
 } from "lucide-react";
 
 const navigation = [
@@ -20,6 +21,7 @@ const navigation = [
   { name: "Websites", href: "/admin/websites", icon: Globe },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Orders", href: "/admin/orders", icon: Clock },
+  { name: "Deposits", href: "/admin/deposits", icon: Wallet },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

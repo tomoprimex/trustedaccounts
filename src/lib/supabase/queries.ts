@@ -1079,3 +1079,233 @@ export async function createPurchase(userId: string, accountId: string, paymentM
 
   return order;
 }
+
+// Wallet functions
+export async function getWalletBalance(userId: string) {
+  const { data, error } = await supabase
+    .from('wallets')
+    .select('balance_cents, currency')
+    .eq('user_id', userId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    // PGRST116 means no rows found, which is ok
+    throw error;
+  }
+
+  return data || { balance_cents: 0, currency: 'NGN' };
+}
+
+export async function getRecentDeposits(userId: string, limit = 10) {
+  const { data, error } = await supabase
+    .from('deposits')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createDeposit(userId: string, amountCents: number, paymentMethod: 'card' | 'transfer', paymentReference?: string) {
+  const { data, error } = await supabase
+    .from('deposits')
+    .insert({
+      user_id: userId,
+      amount_cents: amountCents,
+      currency: 'NGN',
+      payment_method: paymentMethod,
+      payment_reference: paymentReference,
+      status: 'pending',
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateDepositStatus(depositId: string, status: 'completed' | 'failed') {
+  // Use regular client for updates - RLS will handle permissions
+  const { data, error } = await supabase
+    .from('deposits')
+    .update({ status })
+    .eq('id', depositId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating deposit status:', error);
+    throw error;
+  }
+
+  // If deposit is completed, update wallet balance
+  if (status === 'completed') {
+    const { data: deposit } = await supabase
+      .from('deposits')
+      .select('user_id, amount_cents')
+      .eq('id', depositId)
+      .single();
+
+    if (deposit) {
+      // Check if wallet exists
+      const { data: wallet } = await supabase
+        .from('wallets')
+        .select('balance_cents')
+        .eq('user_id', deposit.user_id)
+        .single();
+
+      if (wallet) {
+        // Update existing wallet
+        await supabase
+          .from('wallets')
+          .update({ balance_cents: wallet.balance_cents + deposit.amount_cents })
+          .eq('user_id', deposit.user_id);
+      } else {
+        // Create new wallet
+        await supabase
+          .from('wallets')
+          .insert({
+            user_id: deposit.user_id,
+            balance_cents: deposit.amount_cents,
+            currency: 'NGN',
+          });
+      }
+
+      // Also update profile wallet_balance
+      await supabase
+        .from('profiles')
+        .update({ wallet_balance_cents: (wallet?.balance_cents || 0) + deposit.amount_cents })
+        .eq('id', deposit.user_id);
+    }
+  }
+
+  return data;
+}
+
+export async function initializeWallet(userId: string) {
+  const { data, error } = await supabase
+    .from('wallets')
+    .insert({
+      user_id: userId,
+      balance_cents: 0,
+      currency: 'NGN',
+    })
+    .select()
+    .single();
+
+  if (error && error.code !== '23505') {
+    // 23505 means unique constraint violation - wallet already exists
+    const { data: existingWallet } = await supabase
+      .from('wallets')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    return existingWallet;
+  }
+
+  return data;
+}
+
+export async function completeDepositById(depositId: string) {
+  console.log('Looking for deposit with ID:', depositId);
+
+  // Try with client first
+  const { data, error } = await supabase
+    .from('deposits')
+    .select('*')
+    .eq('id', depositId)
+    .single();
+
+  if (error) {
+    console.error('Error finding deposit by ID with client:', error);
+
+    // Fallback: try with admin client (bypasses RLS)
+    const { data: adminData, error: adminError } = await adminSupabase
+      .from('deposits')
+      .select('*')
+      .eq('id', depositId)
+      .single();
+
+    if (adminError || !adminData) {
+      console.error('Error finding deposit by ID with admin:', adminError);
+      throw new Error(`Deposit not found: ${adminError?.message || 'Not found'}`);
+    }
+
+    console.log('Found deposit with admin:', adminData);
+
+    if (adminData.status === 'completed') {
+      return adminData;
+    }
+
+    return await updateDepositStatus(depositId, 'completed');
+  }
+
+  if (!data) {
+    console.error('No deposit found with ID:', depositId);
+    throw new Error('Deposit not found');
+  }
+
+  console.log('Found deposit:', data);
+
+  if (data.status === 'completed') {
+    return data; // Already completed
+  }
+
+  return await updateDepositStatus(data.id, 'completed');
+}
+
+export async function completeDepositByReference(paymentReference: string) {
+  // Try exact match first
+  const { data, error } = await supabase
+    .from('deposits')
+    .select('*')
+    .eq('payment_reference', paymentReference)
+    .single();
+
+  if (!error && data) {
+    if (data.status === 'completed') {
+      return data; // Already completed
+    }
+    return await updateDepositStatus(data.id, 'completed');
+  }
+
+  // If exact match fails, try to find by starting with the reference
+  // (Paystack might append a timestamp or other data)
+  const { data: partialData, error: partialError } = await supabase
+    .from('deposits')
+    .select('*')
+    .ilike('payment_reference', `${paymentReference}%`)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (partialError || !partialData) {
+    console.error('Deposit not found with reference:', paymentReference);
+    throw new Error('Deposit not found');
+  }
+
+  if (partialData.status === 'completed') {
+    return partialData;
+  }
+
+  return await updateDepositStatus(partialData.id, 'completed');
+}
+
+export async function getAllDeposits() {
+  const { data, error } = await supabase
+    .from('deposits')
+    .select(`
+      *,
+      profiles:profiles(email, full_name)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}

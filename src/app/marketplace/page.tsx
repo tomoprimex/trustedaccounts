@@ -76,6 +76,43 @@ export default function MarketplacePage() {
     }
   };
 
+  const handleWalletPurchase = async () => {
+    if (!user) {
+      alert('Please login to purchase');
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      // Check wallet balance via service role
+      const response = await fetch('/api/purchase-from-wallet', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          accountId: selectedAccount.id,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert('Purchase successful! Your account credentials are now available in your dashboard.');
+        setAccounts(accounts.filter(a => a.id !== selectedAccount.id));
+        setShowPayment(false);
+        setSelectedAccount(null);
+      } else {
+        alert(result.error || 'Purchase failed');
+      }
+    } catch (error) {
+      console.error('Error completing wallet purchase:', error);
+      alert('Failed to complete purchase');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const handlePaymentCancel = () => {
     setShowPayment(false);
     setSelectedAccount(null);
@@ -216,6 +253,7 @@ export default function MarketplacePage() {
           email={user.email}
           accountId={selectedAccount.id}
           onSuccess={handlePaymentSuccess}
+          onWalletPurchase={handleWalletPurchase}
           onClose={handlePaymentCancel}
           onCancel={handlePaymentCancel}
         />

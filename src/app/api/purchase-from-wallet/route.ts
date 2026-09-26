@@ -1,17 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/client';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
     const supabase = createClient();
-    const adminSupabase = createAdminClient();
     const { accountId } = await request.json();
 
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    console.log('Wallet purchase request:', { accountId, hasAuth: !!authHeader });
+
+    if (!authHeader) {
+      console.error('No authorization header');
+      return NextResponse.json({ success: false, error: 'No authorization token' }, { status: 401 });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error('User not authenticated:', authError);
       return NextResponse.json({ success: false, error: 'User not authenticated' }, { status: 401 });
+    }
+
+    console.log('User authenticated:', user.id);
+
+    // Try to create admin client
+    let adminSupabase;
+    try {
+      adminSupabase = createAdminClient();
+      console.log('Admin client created successfully');
+    } catch (error) {
+      console.error('Failed to create admin client:', error);
+      return NextResponse.json({ success: false, error: 'Server configuration error' }, { status: 500 });
     }
 
     // Get account details
@@ -22,10 +43,14 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!account) {
+      console.error('Account not found:', accountId);
       return NextResponse.json({ success: false, error: 'Account not found' }, { status: 404 });
     }
 
+    console.log('Account found:', account.id);
+
     if (account.status !== 'available') {
+      console.error('Account not available:', account.status);
       return NextResponse.json({ success: false, error: 'This account is no longer available' }, { status: 400 });
     }
 
@@ -37,8 +62,11 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!wallet || wallet.balance_cents < account.price_cents) {
+      console.error('Insufficient wallet balance:', wallet?.balance_cents, account.price_cents);
       return NextResponse.json({ success: false, error: 'Insufficient wallet balance' }, { status: 400 });
     }
+
+    console.log('Wallet balance sufficient');
 
     // Deduct from wallet balance using service role
     const { error: walletError } = await adminSupabase
@@ -47,8 +75,11 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id);
 
     if (walletError) {
+      console.error('Failed to deduct from wallet:', walletError);
       return NextResponse.json({ success: false, error: 'Failed to deduct from wallet' }, { status: 500 });
     }
+
+    console.log('Wallet balance deducted');
 
     // Update profile wallet balance as well
     await adminSupabase
@@ -56,10 +87,10 @@ export async function POST(request: NextRequest) {
       .update({ wallet_balance_cents: wallet.balance_cents - account.price_cents })
       .eq('id', user.id);
 
-    // Create order
+    // Create order using admin client to bypass RLS
     const orderNum = `ORD-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
 
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await adminSupabase
       .from('orders')
       .insert({
         order_number: orderNum,
@@ -75,6 +106,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (orderError) {
+      console.error('Failed to create order:', orderError);
       // Rollback wallet deduction
       await adminSupabase
         .from('wallets')
@@ -88,6 +120,8 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({ success: false, error: 'Failed to create order' }, { status: 500 });
     }
+
+    console.log('Order created:', order.id);
 
     // Create revenue record
     const { error: revenueError } = await adminSupabase.from('revenue').insert({
@@ -111,6 +145,8 @@ export async function POST(request: NextRequest) {
     if (updateError) {
       console.error('Error marking account as sold:', updateError);
     }
+
+    console.log('Purchase completed successfully');
 
     return NextResponse.json({ success: true });
   } catch (error) {

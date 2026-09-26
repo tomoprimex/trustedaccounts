@@ -1211,7 +1211,6 @@ export async function initializeWallet(userId: string) {
 export async function completeDepositById(depositId: string) {
   console.log('Looking for deposit with ID:', depositId);
 
-  // Try with client first
   const { data, error } = await supabase
     .from('deposits')
     .select('*')
@@ -1219,27 +1218,8 @@ export async function completeDepositById(depositId: string) {
     .single();
 
   if (error) {
-    console.error('Error finding deposit by ID with client:', error);
-
-    // Fallback: try with admin client (bypasses RLS)
-    const { data: adminData, error: adminError } = await adminSupabase
-      .from('deposits')
-      .select('*')
-      .eq('id', depositId)
-      .single();
-
-    if (adminError || !adminData) {
-      console.error('Error finding deposit by ID with admin:', adminError);
-      throw new Error(`Deposit not found: ${adminError?.message || 'Not found'}`);
-    }
-
-    console.log('Found deposit with admin:', adminData);
-
-    if (adminData.status === 'completed') {
-      return adminData;
-    }
-
-    return await updateDepositStatus(depositId, 'completed');
+    console.error('Error finding deposit by ID:', error);
+    throw new Error(`Deposit not found: ${error.message}`);
   }
 
   if (!data) {

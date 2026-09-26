@@ -84,11 +84,20 @@ export default function MarketplacePage() {
 
     setProcessing(true);
     try {
+      // Get session token
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        alert('Please login to purchase');
+        return;
+      }
+
       // Check wallet balance via service role
       const response = await fetch('/api/purchase-from-wallet', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           accountId: selectedAccount.id,

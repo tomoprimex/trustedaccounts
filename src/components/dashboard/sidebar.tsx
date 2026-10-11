@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { ChevronRight, LayoutDashboard, LogOut, Menu, Package, Settings, Store, Users, X, ShoppingBag, Wallet, Eye, EyeOff } from "lucide-react";
+import { ChevronRight, LayoutDashboard, LogOut, Menu, Package, Settings, Store, Users, X, ShoppingBag, Wallet, Eye, EyeOff, MessageCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getWalletBalance } from "@/lib/supabase/queries";
 
@@ -118,6 +118,15 @@ export function Sidebar() {
                 <div className="flex items-center justify-center">
                   <ThemeToggle />
                 </div>
+                <a
+                  href="https://www.tiktok.com/@trustedaccounts"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-bold text-white/65 hover:bg-pink-500/20 hover:text-pink-200"
+                >
+                  <MessageCircle size={17} />
+                  Follow TikTok
+                </a>
                 <button
                   type="button"
                   onClick={logout}
@@ -195,6 +204,17 @@ export function Sidebar() {
           <div className="flex items-center justify-center">
             <ThemeToggle />
           </div>
+          {!collapsed && (
+            <a
+              href="https://www.tiktok.com/@trustedaccounts"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-bold text-white/65 hover:bg-pink-500/20 hover:text-pink-200"
+            >
+              <MessageCircle size={17} />
+              Follow TikTok
+            </a>
+          )}
           <button
             type="button"
             onClick={logout}

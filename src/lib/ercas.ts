@@ -1,53 +1,51 @@
-const ERCAS_BASE = "https://api.ercaspay.com/api/v1";
+const ERCASPAY_BASE_URL = process.env.ERCASPAY_BASE_URL || "https://api.phoenix-wallet.ercaspay.com/api/v1";
 
 interface InitializeTransactionInput {
-  email: string;
-  amountKobo: number;
-  reference: string;
-  callbackUrl: string;
-  metadata?: Record<string, any>;
+  amount: number;
+  paymentReference: string;
+  customerName: string;
+  customerEmail: string;
+  redirectUrl: string;
+  currency?: string;
 }
 
 export async function initializeTransaction(input: InitializeTransactionInput) {
-  const res = await fetch(`${ERCAS_BASE}/payment/initialize`, {
+  const res = await fetch(`${ERCASPAY_BASE_URL}/payment/initiate`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.ERCAS_SECRET_KEY}`,
+      Accept: "application/json",
       "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.ERCASPAY_SECRET_KEY}`,
     },
     body: JSON.stringify({
-      email: input.email,
-      amount: input.amountKobo,
-      currency: "NGN",
-      reference: input.reference,
-      callback_url: input.callbackUrl,
-      metadata: input.metadata,
+      amount: input.amount,
+      paymentReference: input.paymentReference,
+      customerName: input.customerName,
+      customerEmail: input.customerEmail,
+      currency: input.currency || "NGN",
+      redirectUrl: input.redirectUrl,
     }),
   });
 
-  const json = await res.json();
-  if (!json.status) {
-    throw new Error(json.message || "Ercas Pay initialize failed");
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || "Ercas Pay initialize failed");
   }
 
-  return json.data;
+  return data.responseBody;
 }
 
-export async function verifyTransaction(reference: string) {
+export async function verifyTransaction(transactionRef: string) {
   const res = await fetch(
-    `${ERCAS_BASE}/payment/verify/${encodeURIComponent(reference)}`,
+    `${ERCASPAY_BASE_URL}/payment/transaction/verify/${encodeURIComponent(transactionRef)}`,
     {
       headers: {
-        Authorization: `Bearer ${process.env.ERCAS_SECRET_KEY}`,
+        Accept: "application/json",
+        Authorization: `Bearer ${process.env.ERCASPAY_SECRET_KEY}`,
       },
       cache: "no-store",
     }
   );
 
-  const json = await res.json();
-  if (!json.status) {
-    throw new Error(json.message || "Ercas Pay verify failed");
-  }
-
-  return json.data;
+  return res.json();
 }

@@ -313,10 +313,7 @@ export default function AddMoneyPage() {
               </div>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Payment Confirmed</h2>
               <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-                {paymentMethod === 'transfer' 
-                  ? 'Your transfer has been submitted for admin approval. Your wallet balance will be updated once approved.'
-                  : `Your deposit of ₦${parseFloat(amount).toLocaleString()} has been recorded and your wallet balance has been updated.`
-                }
+                Your deposit of ₦{parseFloat(amount).toLocaleString()} has been recorded and your wallet balance has been updated.
               </p>
               <motion.button
                 whileHover={{ scale: 1.02 }}

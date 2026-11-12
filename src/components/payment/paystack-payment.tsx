@@ -280,7 +280,7 @@ export function PaymentMethod({ amount, email, accountId, onSuccess, onWalletPur
               Back
             </button>
           </div>
-        )}
+        ) : null}
       </motion.div>
     </div>
   );

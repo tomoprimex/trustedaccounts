@@ -1109,7 +1109,7 @@ export async function getRecentDeposits(userId: string, limit = 10) {
   return data || [];
 }
 
-export async function createDeposit(userId: string, amountCents: number, paymentMethod: 'card' | 'transfer', paymentReference?: string) {
+export async function createDeposit(userId: string, amountCents: number, paymentMethod: 'ercas' | 'card', paymentReference?: string) {
   const { data, error } = await supabase
     .from('deposits')
     .insert({

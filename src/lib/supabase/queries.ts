@@ -1016,7 +1016,7 @@ export async function getPurchasedAccounts(userId: string) {
 }
 
 // Create a purchase (create order and mark account as sold)
-export async function createPurchase(userId: string, accountId: string, paymentMethod: 'paystack' | 'transfer' = 'paystack', paymentReference?: string) {
+export async function createPurchase(userId: string, accountId: string, paymentMethod: 'ercas' | 'paystack' | 'wallet' = 'paystack', paymentReference?: string) {
   // Get account details and check if still available
   const { data: account } = await supabase
     .from('accounts')
@@ -1031,8 +1031,9 @@ export async function createPurchase(userId: string, accountId: string, paymentM
   const orderNum = `ORD-${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
 
   // Determine order status based on payment method
-  const orderStatus = paymentMethod === 'paystack' ? 'completed' : 'pending';
-  const deliveryStatus = paymentMethod === 'paystack' ? 'delivered' : 'pending';
+  const isInstantPayment = paymentMethod === 'paystack' || paymentMethod === 'ercas' || paymentMethod === 'wallet';
+  const orderStatus = isInstantPayment ? 'completed' : 'pending';
+  const deliveryStatus = isInstantPayment ? 'delivered' : 'pending';
 
   // Create order
   const { data: order, error: orderError } = await supabase
@@ -1054,7 +1055,7 @@ export async function createPurchase(userId: string, accountId: string, paymentM
   if (orderError) throw orderError;
 
   // Only create revenue record and mark as sold for instant payments
-  if (paymentMethod === 'paystack') {
+  if (isInstantPayment) {
     // Create revenue record
     const { error: revenueError } = await supabase.from('revenue').insert({
       order_id: order.id,

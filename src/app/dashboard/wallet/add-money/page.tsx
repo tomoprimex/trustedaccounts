@@ -3,18 +3,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import { Wallet, ArrowLeft, CreditCard, Building2, Sparkles, Check } from "lucide-react";
+import { Wallet, ArrowLeft, CreditCard, Sparkles, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createDeposit } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
-
-const bankDetails = {
-  accountName: "ABASIODIONG INYANG",
-  accountNumber: "1009822052",
-  bankName: "FIRST CITY MONUMENT BANK (FCMB)",
-};
 
 declare global {
   interface Window {
@@ -26,9 +20,7 @@ export default function AddMoneyPage() {
   const router = useRouter();
   const [step, setStep] = useState<'form' | 'success' | 'failed'>('form');
   const [amount, setAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'transfer' | null>(null);
-  const [transferProof, setTransferProof] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'ercas' | 'card' | null>(null);
   const [loading, setLoading] = useState(false);
   const [userEmail, setUserEmail] = useState('');
 
@@ -51,12 +43,6 @@ export default function AddMoneyPage() {
       document.body.removeChild(script);
     };
   }, []);
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const handlePaystackPayment = (depositId: string) => {
     const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "";
@@ -132,6 +118,31 @@ export default function AddMoneyPage() {
     handler.openIframe();
   };
 
+  const handleErcasPayment = async (depositId: string) => {
+    try {
+      const res = await fetch('/api/ercas-initialize-deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          depositId,
+          amount: parseFloat(amount),
+        }),
+      });
+
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert('Failed to initialize Ercas Pay payment');
+        setStep('failed');
+      }
+    } catch (error) {
+      console.error('Ercas Pay error:', error);
+      alert('Failed to initialize payment');
+      setStep('failed');
+    }
+  };
+
   const handleContinue = async () => {
     if (!amount || parseFloat(amount) <= 0) {
       alert('Please enter a valid amount');
@@ -143,28 +154,23 @@ export default function AddMoneyPage() {
       return;
     }
 
-    if (paymentMethod === 'transfer' && !transferProof.trim()) {
-      alert('Please provide transfer reference or proof');
-      return;
-    }
-
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const amountCents = Math.round(parseFloat(amount) * 100);
 
+        // Generate unique reference
+        const reference = `WALLET-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        // Create deposit first
+        const deposit = await createDeposit(user.id, amountCents, paymentMethod, reference);
+
         if (paymentMethod === 'card') {
-          // Generate unique reference
-          const reference = `WALLET-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-          // Create deposit first
-          const deposit = await createDeposit(user.id, amountCents, paymentMethod, reference);
           // Use deposit ID as reference for Paystack
           handlePaystackPayment(deposit.id);
-        } else {
-          // Transfer requires admin approval
-          await createDeposit(user.id, amountCents, paymentMethod, transferProof);
-          setStep('success');
+        } else if (paymentMethod === 'ercas') {
+          // Use deposit ID for Ercas Pay
+          handleErcasPayment(deposit.id);
         }
       }
     } catch (error) {
@@ -241,6 +247,19 @@ export default function AddMoneyPage() {
                 Payment Method
               </label>
               <div className="grid grid-cols-2 gap-3">
+                {/* Ercas Pay - First */}
+                <button
+                  onClick={() => setPaymentMethod('ercas')}
+                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                    paymentMethod === 'ercas'
+                      ? 'border-purple-600 bg-purple-50 dark:border-purple-500 dark:bg-purple-900/30'
+                      : 'border-slate-200 hover:border-purple-600/50 dark:border-slate-700 dark:hover:border-purple-500/50'
+                  }`}
+                >
+                  <CreditCard size={24} className={paymentMethod === 'ercas' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400'} />
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Ercas Pay</span>
+                </button>
+                {/* Paystack - Second */}
                 <button
                   onClick={() => setPaymentMethod('card')}
                   className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
@@ -252,81 +271,9 @@ export default function AddMoneyPage() {
                   <CreditCard size={24} className={paymentMethod === 'card' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'} />
                   <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Paystack</span>
                 </button>
-                <button
-                  onClick={() => setPaymentMethod('transfer')}
-                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
-                    paymentMethod === 'transfer'
-                      ? 'border-blue-600 bg-blue-50 dark:border-blue-500 dark:bg-blue-900/30'
-                      : 'border-slate-200 hover:border-blue-600/50 dark:border-slate-700 dark:hover:border-blue-500/50'
-                  }`}
-                >
-                  <Building2 size={24} className={paymentMethod === 'transfer' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'} />
-                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Transfer</span>
-                </button>
               </div>
             </div>
           </motion.div>
-
-          {/* Transfer Details */}
-          {paymentMethod === 'transfer' && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="relative"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">Bank Transfer Details</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-600 dark:text-slate-400">Bank Name:</span>
-                    <span className="text-xs font-medium text-slate-800 dark:text-white">{bankDetails.bankName}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-600 dark:text-slate-400">Account Name:</span>
-                    <span className="text-xs font-medium text-slate-800 dark:text-white">{bankDetails.accountName}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-600 dark:text-slate-400">Account Number:</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-slate-800 dark:text-white">{bankDetails.accountNumber}</span>
-                      <button
-                        onClick={() => copyToClipboard(bankDetails.accountNumber)}
-                        className="p-1 hover:bg-blue-100 rounded transition-colors dark:hover:bg-blue-900/30"
-                      >
-                        {copied ? <Check size={14} className="text-green-600" /> : <CreditCard size={14} className="text-blue-600 dark:text-blue-400" />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Transfer Proof */}
-          {paymentMethod === 'transfer' && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="relative"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm">
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Transfer Reference / Proof
-                </label>
-                <textarea
-                  value={transferProof}
-                  onChange={(e) => setTransferProof(e.target.value)}
-                  placeholder="Enter your transfer reference number or upload proof..."
-                  rows={3}
-                  className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all resize-none dark:bg-slate-700/50 dark:text-white dark:border-blue-500/30"
-                />
-              </div>
-            </motion.div>
-          )}
 
           {/* Continue Button */}
           <motion.div

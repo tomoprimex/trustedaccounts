@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { X, CreditCard, Building2, Copy, Check, Wallet } from "lucide-react";
+import { X, CreditCard, Wallet } from "lucide-react";
 import { getWalletBalance } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/client";
 
@@ -10,7 +10,7 @@ interface PaymentMethodProps {
   amount: number; // in Naira
   email: string;
   accountId: string;
-  onSuccess: (reference: string, method: 'paystack' | 'transfer') => void;
+  onSuccess: (reference: string, method: 'ercas' | 'paystack' | 'wallet') => void;
   onWalletPurchase: () => void;
   onClose: () => void;
   onCancel: () => void;
@@ -26,17 +26,10 @@ declare global {
 
 export function PaymentMethod({ amount, email, accountId, onSuccess, onWalletPurchase, onClose, onCancel }: PaymentMethodProps) {
   const [mounted, setMounted] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState<'paystack' | 'transfer' | 'wallet' | null>(null);
-  const [transferProof, setTransferProof] = useState('');
+  const [selectedMethod, setSelectedMethod] = useState<'ercas' | 'paystack' | 'wallet' | null>(null);
   const [copied, setCopied] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
   const [loadingWallet, setLoadingWallet] = useState(true);
-
-  const bankDetails = {
-    accountName: "ABASIODIONG INYANG",
-    accountNumber: "1009822052",
-    bankName: "FIRST CITY MONUMENT BANK (FCMB)",
-  };
 
   useEffect(() => {
     setMounted(true);
@@ -98,13 +91,27 @@ export function PaymentMethod({ amount, email, accountId, onSuccess, onWalletPur
     handler.openIframe();
   };
 
-  const handleTransferPayment = () => {
-    if (!transferProof.trim()) {
-      alert('Please provide transfer reference or proof');
-      return;
+  const handleErcasPayment = async () => {
+    try {
+      const res = await fetch('/api/pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          websiteId: accountId,
+          paymentMethod: 'ercas',
+        }),
+      });
+
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert('Failed to initialize Ercas Pay payment');
+      }
+    } catch (error) {
+      console.error('Ercas Pay error:', error);
+      alert('Failed to initialize payment');
     }
-    const reference = `TRANSFER-${Date.now()}`;
-    onSuccess(transferProof, 'transfer');
   };
 
   const copyToClipboard = (text: string) => {
@@ -149,6 +156,34 @@ export function PaymentMethod({ amount, email, accountId, onSuccess, onWalletPur
           <div className="space-y-3">
             <p className="text-sm text-slate-600 mb-4">Choose your payment method:</p>
 
+            {/* Ercas Pay Option - First */}
+            <button
+              onClick={() => setSelectedMethod('ercas')}
+              className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all flex items-center gap-4"
+            >
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+                <CreditCard size={24} className="text-white" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold text-slate-800">Ercas Pay</h3>
+                <p className="text-xs text-slate-500">Instant payment</p>
+              </div>
+            </button>
+
+            {/* Paystack Option - Second */}
+            <button
+              onClick={() => setSelectedMethod('paystack')}
+              className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 hover:border-green-500 hover:bg-green-50 transition-all flex items-center gap-4"
+            >
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                <CreditCard size={24} className="text-white" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold text-slate-800">Paystack</h3>
+                <p className="text-xs text-slate-500">Instant payment</p>
+              </div>
+            </button>
+
             {/* Wallet Option */}
             <button
               onClick={() => setSelectedMethod('wallet')}
@@ -170,36 +205,25 @@ export function PaymentMethod({ amount, email, accountId, onSuccess, onWalletPur
             </button>
 
             <button
-              onClick={() => setSelectedMethod('paystack')}
-              className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all flex items-center gap-4"
-            >
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-                <CreditCard size={24} className="text-white" />
-              </div>
-              <div className="text-left">
-                <h3 className="font-bold text-slate-800">Paystack</h3>
-                <p className="text-xs text-slate-500">Instant payment</p>
-              </div>
-            </button>
-
-            <button
-              onClick={() => setSelectedMethod('transfer')}
-              className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all flex items-center gap-4"
-            >
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                <Building2 size={24} className="text-white" />
-              </div>
-              <div className="text-left">
-                <h3 className="font-bold text-slate-800">Bank Transfer</h3>
-                <p className="text-xs text-slate-500">Requires admin approval</p>
-              </div>
-            </button>
-
-            <button
               onClick={onCancel}
               className="w-full px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
             >
               Cancel
+            </button>
+          </div>
+        ) : selectedMethod === 'ercas' ? (
+          <div className="space-y-3">
+            <button
+              onClick={handleErcasPayment}
+              className="w-full px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2"
+            >
+              Pay with Ercas Pay
+            </button>
+            <button
+              onClick={() => setSelectedMethod(null)}
+              className="w-full px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
+            >
+              Back
             </button>
           </div>
         ) : selectedMethod === 'wallet' ? (
@@ -248,66 +272,6 @@ export function PaymentMethod({ amount, email, accountId, onSuccess, onWalletPur
               className="w-full px-6 py-3 rounded-2xl bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg shadow-green-500/25 flex items-center justify-center gap-2"
             >
               Pay with Paystack
-            </button>
-            <button
-              onClick={() => setSelectedMethod(null)}
-              className="w-full px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
-            >
-              Back
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
-              <h3 className="font-bold text-slate-800 mb-3">Bank Transfer Details</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-600">Bank Name:</span>
-                  <span className="font-medium text-slate-800">{bankDetails.bankName}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-600">Account Name:</span>
-                  <span className="font-medium text-slate-800">{bankDetails.accountName}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-600">Account Number:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-slate-800">{bankDetails.accountNumber}</span>
-                    <button
-                      onClick={() => copyToClipboard(bankDetails.accountNumber)}
-                      className="p-1 hover:bg-blue-100 rounded transition-colors"
-                    >
-                      {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} className="text-blue-600" />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Transfer Reference / Proof
-              </label>
-              <textarea
-                value={transferProof}
-                onChange={(e) => setTransferProof(e.target.value)}
-                placeholder="Enter your transfer reference number or upload proof..."
-                rows={3}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
-              />
-            </div>
-
-            <div className="bg-yellow-50 rounded-xl p-3 border border-yellow-200">
-              <p className="text-xs text-yellow-800">
-                <strong>Note:</strong> Bank transfers require admin approval. Your order will be processed once the transfer is verified.
-              </p>
-            </div>
-
-            <button
-              onClick={handleTransferPayment}
-              className="w-full px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2"
-            >
-              Submit Transfer Proof
             </button>
             <button
               onClick={() => setSelectedMethod(null)}

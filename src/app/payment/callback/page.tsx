@@ -40,6 +40,8 @@ export default async function PaymentCallbackPage({
 
   if (isSuccess) {
     const admin = createAdminClient();
+
+    // Check if it's a purchase
     if (isPaystack) {
       await admin
         .from("purchases")
@@ -53,12 +55,48 @@ export default async function PaymentCallbackPage({
         .eq("ercas_reference", paymentReference)
         .eq("user_id", user.id);
     }
+
+    // Check if it's a wallet deposit
+    const { data: deposit } = await admin
+      .from("deposits")
+      .select("id, amount_cents, status")
+      .eq("payment_reference", paymentReference)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (deposit && deposit.status !== "completed") {
+      await admin
+        .from("deposits")
+        .update({ status: "completed" })
+        .eq("id", deposit.id);
+
+      // Update wallet balance
+      const { data: wallet } = await admin
+        .from("wallets")
+        .select("id, balance_cents")
+        .eq("user_id", user.id)
+        .single();
+
+      if (wallet) {
+        await admin
+          .from("wallets")
+          .update({ balance_cents: wallet.balance_cents + deposit.amount_cents })
+          .eq("id", wallet.id);
+      } else {
+        await admin
+          .from("wallets")
+          .insert({
+            user_id: user.id,
+            balance_cents: deposit.amount_cents,
+          });
+      }
+    }
   }
 
   return (
     <main style={{ maxWidth: 600, margin: "40px auto", padding: 16 }}>
       <h1>{isSuccess ? "Payment successful" : "Payment not completed"}</h1>
-      <p><Link href="/library">Go to library</Link></p>
+      <p><Link href="/dashboard">Go to dashboard</Link></p>
     </main>
   );
 }

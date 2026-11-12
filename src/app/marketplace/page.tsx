@@ -116,17 +116,12 @@ export default function MarketplacePage() {
     setShowPayment(true);
   };
 
-  const handlePaymentSuccess = async (reference: string, method: 'paystack' | 'transfer') => {
+  const handlePaymentSuccess = async (reference: string, method: 'ercas' | 'paystack' | 'wallet') => {
     setProcessing(true);
     try {
       await createPurchase(user.id, selectedAccount.id, method, reference);
-      if (method === 'paystack') {
-        alert('Purchase successful! Your account credentials are now available in your dashboard.');
-        setAccounts(accounts.filter(a => a.id !== selectedAccount.id));
-      } else {
-        alert('Transfer proof submitted! Your order is pending admin approval. You will be able to access the account credentials once the transfer is verified and approved by admin.');
-        setAccounts(accounts.filter(a => a.id !== selectedAccount.id));
-      }
+      alert('Purchase successful! Your account credentials are now available in your dashboard.');
+      setAccounts(accounts.filter(a => a.id !== selectedAccount.id));
       setShowPayment(false);
       setSelectedAccount(null);
     } catch (error) {

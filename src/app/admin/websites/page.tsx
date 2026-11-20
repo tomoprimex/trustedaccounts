@@ -7,9 +7,10 @@ import { Plus, Edit, Trash2, Search, Globe, DollarSign, Sparkles, Zap } from "lu
 import { getAccounts, createAccount, updateAccount, deleteAccount } from "@/lib/supabase/queries";
 
 const statusConfig = {
+  pending: { label: "Pending review", color: "bg-gradient-to-r from-violet-500 to-violet-600 text-white", icon: Sparkles },
   available: { label: "Available", color: "bg-gradient-to-r from-blue-600 to-blue-600 text-white", icon: Globe },
   reserved: { label: "Reserved", color: "bg-gradient-to-r from-amber-400 to-yellow-500 text-white", icon: Zap },
-  sold: { label: "Sold", color: "bg-gradient-to-r from-slate-600 to-slate-700 text-white", icon: DollarSign },
+  sold: { label: "Sold", color: "bg-gradient-to-r from-ink-700 to-ink-800 text-white", icon: DollarSign },
   removed: { label: "Removed", color: "bg-gradient-to-r from-red-400 to-red-500 text-white", icon: Trash2 },
 };
 
@@ -39,7 +40,7 @@ export default function WebsitesPage() {
     price_cents: "",
     currency: "NGN",
     description: "",
-    status: "available" as "available" | "reserved" | "sold" | "removed",
+    status: "available" as "pending" | "available" | "reserved" | "sold" | "removed",
   });
 
   useEffect(() => {
@@ -205,7 +206,7 @@ export default function WebsitesPage() {
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-800/20 to-indigo-900/20 rounded-2xl blur-xl" />
-            <div className="relative flex items-center gap-3 bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/20 shadow-lg">
+            <div className="relative flex items-center gap-3 bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-slate-200 shadow-lg">
               <Search size={20} className="text-slate-400" />
               <input
                 type="text"
@@ -236,7 +237,7 @@ export default function WebsitesPage() {
                 className="relative group"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-800/20 to-indigo-900/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500" />
-                <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-lg hover:shadow-2xl transition-all duration-300">
+                <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-slate-200 shadow-lg hover:shadow-2xl transition-all duration-300">
                   <div className="flex items-start gap-3 mb-4">
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-800 to-indigo-900 flex items-center justify-center text-2xl flex-shrink-0">
                       {platformIcons[account.platform] || "🌐"}
@@ -312,9 +313,9 @@ export default function WebsitesPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col border border-white/20"
+            className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col border border-slate-200"
           >
-            <div className="p-6 border-b border-white/20">
+            <div className="p-6 border-b border-slate-200">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-gradient-to-br from-blue-800 to-indigo-900 rounded-xl">
                   <Sparkles size={20} className="text-white" />
@@ -331,7 +332,7 @@ export default function WebsitesPage() {
                 <select
                   value={formData.platform}
                   onChange={(e) => setFormData({ ...formData, platform: e.target.value as any })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 >
                   <option value="facebook">Facebook</option>
                   <option value="instagram">Instagram</option>
@@ -348,7 +349,7 @@ export default function WebsitesPage() {
                   required
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 />
               </div>
               <div>
@@ -358,7 +359,7 @@ export default function WebsitesPage() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 />
               </div>
               <div>
@@ -368,7 +369,7 @@ export default function WebsitesPage() {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 />
               </div>
               <div>
@@ -377,7 +378,7 @@ export default function WebsitesPage() {
                   type="tel"
                   value={formData.recovery_phone}
                   onChange={(e) => setFormData({ ...formData, recovery_phone: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 />
               </div>
               <div>
@@ -386,7 +387,7 @@ export default function WebsitesPage() {
                   type="text"
                   value={formData.two_factor_secret}
                   onChange={(e) => setFormData({ ...formData, two_factor_secret: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 />
               </div>
               <div>
@@ -396,7 +397,7 @@ export default function WebsitesPage() {
                   required
                   value={formData.price_cents}
                   onChange={(e) => setFormData({ ...formData, price_cents: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 />
               </div>
               <div>
@@ -404,7 +405,7 @@ export default function WebsitesPage() {
                 <select
                   value={formData.currency}
                   onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 >
                   <option value="USD">USD</option>
                   <option value="NGN">NGN</option>
@@ -416,7 +417,7 @@ export default function WebsitesPage() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={2}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all resize-none"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all resize-none"
                 />
               </div>
               <div>
@@ -424,8 +425,9 @@ export default function WebsitesPage() {
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+                  className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                 >
+                  <option value="pending">Pending review</option>
                   <option value="available">Available</option>
                   <option value="reserved">Reserved</option>
                   <option value="sold">Sold</option>
@@ -439,7 +441,7 @@ export default function WebsitesPage() {
                   whileTap={{ scale: 0.98 }}
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="flex-1 px-6 py-3 rounded-2xl border-2 border-white/20 text-slate-600 font-semibold hover:bg-white/50 transition-colors backdrop-blur"
+                  className="flex-1 px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-600 font-semibold hover:bg-white/50 transition-colors backdrop-blur"
                 >
                   Cancel
                 </motion.button>
@@ -464,7 +466,7 @@ export default function WebsitesPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-sm p-6 border border-white/20"
+            className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-sm p-6 border border-slate-200"
           >
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-gradient-to-br from-red-400 to-red-500 rounded-xl">
@@ -480,7 +482,7 @@ export default function WebsitesPage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 px-6 py-3 rounded-2xl border-2 border-white/20 text-slate-600 font-semibold hover:bg-white/50 transition-colors backdrop-blur"
+                className="flex-1 px-6 py-3 rounded-2xl border-2 border-slate-200 text-slate-600 font-semibold hover:bg-white/50 transition-colors backdrop-blur"
               >
                 Cancel
               </motion.button>

@@ -81,7 +81,7 @@ export function DataTable<T extends { id: string }>({
               {columns.map((column) => (
                 <th
                   key={String(column.key)}
-                    className={`px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500 ${
+                    className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 ${
                     column.sortable ? "cursor-pointer hover:bg-slate-100 transition-colors" : ""
                   }`}
                   onClick={() => column.sortable && handleSort(column.key)}
@@ -171,7 +171,7 @@ export function DataTable<T extends { id: string }>({
             <div className="space-y-2">
               {columns.slice(0, 4).map((column) => (
                 <div key={String(column.key)} className="flex items-start justify-between gap-4 text-xs">
-                  <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-slate-400">{column.label}</span>
+                  <span className="shrink-0 text-[11px] font-bold uppercase tracking-wide text-slate-400">{column.label}</span>
                   <span className="min-w-0 text-right font-medium text-slate-700">{column.render ? column.render(row[column.key], row) : String(row[column.key])}</span>
                 </div>
               ))}

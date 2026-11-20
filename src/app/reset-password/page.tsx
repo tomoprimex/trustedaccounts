@@ -88,7 +88,7 @@ export default function ResetPasswordPage() {
                 value={password}
                 onChange={handlePasswordChange}
                 required
-                className="w-full pl-12 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all"
+                className="w-full pl-12 pr-12 py-3 bg-glass/10 border border-slate-200 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all"
               />
               <button
                 type="button"
@@ -120,7 +120,7 @@ export default function ResetPasswordPage() {
                             : threshold === 75
                             ? "bg-yellow-500"
                             : "bg-emerald-500"
-                          : "bg-white/20"
+                          : "bg-glass/20"
                       }`}
                     />
                   ))}
@@ -151,7 +151,7 @@ export default function ResetPasswordPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full pl-12 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all"
+                className="w-full pl-12 pr-12 py-3 bg-glass/10 border border-slate-200 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all"
               />
               <button
                 type="button"
@@ -202,7 +202,7 @@ export default function ResetPasswordPage() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 py-3.5 bg-white text-[#1E3A8A] rounded-xl font-semibold shadow-lg shadow-white/20 hover:shadow-xl hover:shadow-white/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 py-3.5 bg-white text-blue-900 rounded-xl font-semibold shadow-lg shadow-white/20 hover:shadow-xl hover:shadow-white/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -253,11 +253,11 @@ export default function ResetPasswordPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="pt-4 border-t border-white/20"
+            className="pt-4 border-t border-slate-200"
           >
             <Link
               href="/login"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-[#1E3A8A] rounded-xl font-semibold shadow-lg shadow-white/20 hover:shadow-xl hover:shadow-white/30 transition-all"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-blue-900 rounded-xl font-semibold shadow-lg shadow-white/20 hover:shadow-xl hover:shadow-white/30 transition-all"
             >
               Sign In
               <ArrowRight size={20} />

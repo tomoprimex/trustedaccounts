@@ -10,7 +10,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <div className="min-h-screen bg-[#f5f7fb] dark:bg-[#0f172a]">
+    <div className="min-h-screen bg-canvas">
       <Sidebar />
 
       <main className="lg:ml-[280px] transition-all duration-300">

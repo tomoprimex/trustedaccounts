@@ -10,7 +10,7 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState({
     siteName: "TrustedAccounts",
     siteDescription: "Buy and sell verified account credentials securely",
-    contactEmail: "support@trustedaccounts.com",
+    contactEmail: "trustedlistings@hotmail.com",
     maintenanceMode: false,
     enableNotifications: true,
     enableAnalytics: true,
@@ -122,7 +122,7 @@ export default function AdminSettingsPage() {
                 className="relative"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-800/20 to-indigo-900/20 rounded-3xl blur-xl" />
-                <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-lg">
+                <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-slate-200 shadow-lg">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="p-2 bg-gradient-to-br from-blue-800 to-indigo-900 rounded-xl">
                       <SectionIcon size={20} className="text-white" />
@@ -167,7 +167,7 @@ export default function AdminSettingsPage() {
                               onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
                               rows={'rows' in field ? field.rows : 3}
                               placeholder={'placeholder' in field ? field.placeholder : ''}
-                              className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all resize-none"
+                              className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all resize-none"
                             />
                           </div>
                         ) : (
@@ -180,7 +180,7 @@ export default function AdminSettingsPage() {
                               value={settings[field.key as keyof typeof settings] as string}
                               onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
                               placeholder={'placeholder' in field ? field.placeholder : ''}
-                              className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
+                              className="w-full px-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                             />
                           </div>
                         )}

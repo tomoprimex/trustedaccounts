@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const links = [
   { label: "Why TrustedAccounts", href: "#features" },
@@ -33,18 +34,19 @@ export function Navbar() {
         </Link>
         <div className="hidden items-center gap-6 md:flex">
           {links.map((link) => (
-            <a key={link.href} href={link.href} className="text-[10px] font-bold text-slate-500 transition-colors hover:text-blue-600">
+            <a key={link.href} href={link.href} className="text-[11px] font-bold text-slate-500 transition-colors hover:text-blue-600">
               {link.label}
             </a>
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/login" className="hidden text-[10px] font-bold text-slate-500 hover:text-blue-600 sm:block">
+          <ThemeToggle className="h-8 w-8" />
+          <Link href="/login" className="hidden text-[11px] font-bold text-slate-500 hover:text-blue-600 sm:block">
             Sign in
           </Link>
           <Link
             href="/signup"
-            className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-600 px-3 py-2 text-[10px] font-extrabold text-white shadow-lg shadow-blue-600/15 transition hover:-translate-y-0.5 hover:from-blue-500 hover:to-blue-500"
+            className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-600 px-3 py-2 text-[11px] font-extrabold text-white shadow-lg shadow-blue-600/15 transition hover:-translate-y-0.5 hover:from-blue-500 hover:to-blue-500"
           >
             Browse accounts
           </Link>

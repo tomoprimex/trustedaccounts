@@ -62,7 +62,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
       className="bg-white rounded-xl sm:rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 overflow-hidden"
     >
       <div className="p-3 sm:p-4 sm:p-6 border-b border-slate-100">
-        <h2 className="text-base sm:text-lg sm:text-xl font-bold text-[#1E3A8A]">Recent Orders</h2>
+        <h2 className="text-base sm:text-lg sm:text-xl font-bold text-blue-900">Recent Orders</h2>
         <p className="text-xs sm:text-sm text-slate-500 mt-1">Latest account purchases</p>
       </div>
       
@@ -127,7 +127,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
                   className="hover:bg-slate-50/50 transition-colors cursor-pointer group"
                 >
                   <td className="px-3 sm:px-4 sm:px-6 py-2 sm:py-3 sm:py-4">
-                    <span className="font-semibold text-[#1E3A8A] group-hover:text-[#1E40AF] transition-colors">
+                    <span className="font-semibold text-blue-900 group-hover:text-blue-800 transition-colors">
                       {order.order_number}
                     </span>
                   </td>
@@ -160,7 +160,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
       </div>
       
       <div className="p-3 sm:p-4 border-t border-slate-100 bg-slate-50/30">
-        <button className="w-full py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[#1E3A8A] hover:text-[#1E40AF] transition-colors">
+        <button className="w-full py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-blue-900 hover:text-blue-800 transition-colors">
           View All Orders →
         </button>
       </div>

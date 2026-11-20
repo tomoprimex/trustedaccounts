@@ -51,7 +51,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 sm:mb-6 gap-2 sm:gap-3">
         <div>
-          <h2 className="text-base sm:text-lg sm:text-xl font-bold text-[#1E3A8A]">Revenue Overview</h2>
+          <h2 className="text-base sm:text-lg sm:text-xl font-bold text-blue-900">Revenue Overview</h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">Weekly performance</p>
         </div>
         <div className="flex gap-1.5 sm:gap-2">
@@ -105,7 +105,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
       {/* Summary */}
       <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-slate-100">
         <div className="text-center">
-          <p className="text-lg sm:text-xl sm:text-2xl font-bold text-[#1E3A8A]">{formatCurrency(data.reduce((sum, d) => sum + d.amount_cents, 0))}</p>
+          <p className="text-lg sm:text-xl sm:text-2xl font-bold text-blue-900">{formatCurrency(data.reduce((sum, d) => sum + d.amount_cents, 0))}</p>
           <p className="text-xs text-slate-500 mt-1">Total Revenue</p>
         </div>
         <div className="text-center">

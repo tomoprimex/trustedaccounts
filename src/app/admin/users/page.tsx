@@ -9,7 +9,7 @@ import { getUsers } from "@/lib/supabase/queries";
 const roleConfig = {
   admin: { label: "Admin", color: "bg-gradient-to-r from-blue-600 to-blue-600 text-white", icon: Shield },
   seller: { label: "Seller", color: "bg-gradient-to-r from-blue-600 to-blue-600 text-white", icon: UserCircle },
-  customer: { label: "Customer", color: "bg-gradient-to-r from-slate-800 to-blue-600 text-white", icon: UserCircle },
+  customer: { label: "Customer", color: "bg-gradient-to-r from-ink-800 to-blue-600 text-white", icon: UserCircle },
 };
 
 export default function UsersPage() {
@@ -81,7 +81,7 @@ export default function UsersPage() {
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-800/20 to-indigo-900/20 rounded-2xl blur-xl" />
-            <div className="relative flex items-center gap-3 bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/20 shadow-lg">
+            <div className="relative flex items-center gap-3 bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-slate-200 shadow-lg">
               <Search size={20} className="text-slate-400" />
               <input
                 type="text"
@@ -112,7 +112,7 @@ export default function UsersPage() {
                 className="relative group"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-800/20 to-indigo-900/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500" />
-                <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-lg hover:shadow-2xl transition-all duration-300">
+                <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-slate-200 shadow-lg hover:shadow-2xl transition-all duration-300">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-600 flex items-center justify-center text-white font-bold text-lg">

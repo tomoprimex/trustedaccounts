@@ -65,7 +65,7 @@ export default function DashboardPage() {
       name: "Total Spent",
       value: `₦${(stats?.totalRevenue || 0).toLocaleString()}`,
       icon: TrendingUp,
-      gradient: "from-slate-800 to-blue-600",
+      gradient: "from-ink-800 to-blue-600",
     },
   ];
 
@@ -82,13 +82,13 @@ export default function DashboardPage() {
             <div className="p-1.5 bg-gradient-to-br from-blue-600 to-blue-600 rounded-lg">
               <Sparkles size={14} className="text-white" />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-blue-500">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent dark:from-blue-400">
               Dashboard
             </h1>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Welcome back. Here's what's happening with your account.</p>
+          <p className="text-xs text-slate-500">Welcome back. Here's what's happening with your account.</p>
           {orders.some(o => o.status === 'pending') && (
-            <p className="text-[10px] text-amber-600 mt-1">You have pending orders awaiting admin approval</p>
+            <p className="text-[11px] text-amber-600 mt-1">You have pending orders awaiting admin approval</p>
           )}
         </motion.div>
 
@@ -102,13 +102,13 @@ export default function DashboardPage() {
               transition={{ delay: index * 0.05 }}
               className="relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-3 border border-white/30 shadow-sm h-full min-h-[80px] flex flex-col justify-center dark:bg-slate-800/80 dark:border-slate-700/50">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:to-blue-600/10" />
+              <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-3 border border-slate-200 shadow-sm h-full min-h-[80px] flex flex-col justify-center">
                 <div className={`p-1.5 rounded-lg bg-gradient-to-br ${stat.gradient} mb-2 w-fit`}>
                   <stat.icon size={12} className="text-white" />
                 </div>
-                <p className="text-[10px] text-slate-500 font-medium leading-tight dark:text-slate-400">{stat.name}</p>
-                <p className="text-sm font-bold text-slate-900 leading-tight dark:text-white">{stat.value}</p>
+                <p className="text-[11px] text-slate-500 font-medium leading-tight">{stat.name}</p>
+                <p className="text-sm font-bold text-slate-900 leading-tight">{stat.value}</p>
               </div>
             </motion.div>
           ))}
@@ -122,17 +122,17 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-sm font-bold text-slate-900">Recent Orders</h2>
-            <div className="p-1 bg-blue-50 rounded-lg dark:bg-blue-900/30">
+            <div className="p-1 bg-blue-50 rounded-lg">
               <Clock size={12} className="text-blue-600 dark:text-blue-400" />
             </div>
           </div>
 
           {orders.length === 0 ? (
-            <div className="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-white/30 text-center dark:bg-slate-800/80 dark:border-slate-700/50">
-              <div className="p-2 bg-blue-50 rounded-full w-fit mx-auto mb-2 dark:bg-blue-900/30">
+            <div className="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-slate-200 text-center">
+              <div className="p-2 bg-blue-50 rounded-full w-fit mx-auto mb-2">
                 <ShoppingBag size={20} className="text-blue-600 dark:text-blue-400" />
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">No orders yet</p>
+              <p className="text-xs text-slate-500">No orders yet</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -144,14 +144,14 @@ export default function DashboardPage() {
                   transition={{ delay: 0.2 + index * 0.03 }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-blue-600/5 rounded-xl blur-sm dark:from-blue-500/5 dark:to-blue-600/5" />
-                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-white/30 shadow-sm dark:bg-slate-800/80 dark:border-slate-700/50">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-blue-600/5 rounded-xl blur-sm dark:to-blue-600/5" />
+                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-slate-200 shadow-sm">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-bold text-slate-900 truncate dark:text-white">{order.order_number}</p>
-                        <p className="text-[9px] text-slate-500 truncate dark:text-slate-400">{new Date(order.created_at).toLocaleDateString()}</p>
+                        <p className="text-[11px] font-bold text-slate-900 truncate">{order.order_number}</p>
+                        <p className="text-[11px] text-slate-500 truncate">{new Date(order.created_at).toLocaleDateString()}</p>
                       </div>
-                      <div className={`px-1.5 py-0.5 rounded-md text-[8px] font-bold flex-shrink-0 ${statusConfig[order.status as keyof typeof statusConfig]?.color}`}>
+                      <div className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold flex-shrink-0 ${statusConfig[order.status as keyof typeof statusConfig]?.color}`}>
                         {statusConfig[order.status as keyof typeof statusConfig]?.label || order.status}
                       </div>
                     </div>
@@ -186,14 +186,14 @@ export default function DashboardPage() {
                   className="relative"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-blue-600/5 rounded-xl blur-sm" />
-                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-white/30 shadow-sm">
+                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-slate-200 shadow-sm">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-600 to-blue-600 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-600 to-blue-600 flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0">
                         {purchase.account?.platform?.charAt(0)?.toUpperCase() || 'A'}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-bold text-slate-900 truncate">{purchase.account?.username || 'Unknown'}</p>
-                        <p className="text-[9px] text-slate-500 truncate">{purchase.account?.platform || 'Platform'}</p>
+                        <p className="text-[11px] font-bold text-slate-900 truncate">{purchase.account?.username || 'Unknown'}</p>
+                        <p className="text-[11px] text-slate-500 truncate">{purchase.account?.platform || 'Platform'}</p>
                       </div>
                       <ChevronRight size={12} className="text-slate-400 flex-shrink-0" />
                     </div>

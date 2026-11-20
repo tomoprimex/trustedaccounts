@@ -70,7 +70,7 @@ export default function OrdersPage() {
             </h1>
           </div>
           <p className="text-xs text-slate-500">Manage your orders and track their status</p>
-          <p className="text-[10px] text-amber-600 mt-1">Note: Bank transfer orders require admin approval before account access</p>
+          <p className="text-[11px] text-amber-600 mt-1">Note: Bank transfer orders require admin approval before account access</p>
         </motion.div>
 
         {/* Empty State */}
@@ -78,13 +78,13 @@ export default function OrdersPage() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-white/30 text-center"
+            className="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-slate-200 text-center"
           >
             <div className="p-2 bg-blue-50 rounded-full w-fit mx-auto mb-2">
               <ShoppingBag size={20} className="text-blue-600" />
             </div>
             <p className="text-xs text-slate-500">No orders yet</p>
-            <p className="text-[10px] text-slate-400 mt-1">Start shopping to see your orders here</p>
+            <p className="text-[11px] text-slate-400 mt-1">Start shopping to see your orders here</p>
           </motion.div>
         ) : (
           <div className="space-y-2">
@@ -99,7 +99,7 @@ export default function OrdersPage() {
                   className="relative"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md" />
-                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-white/30 shadow-sm">
+                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-slate-200 shadow-sm">
                     {/* Order Header */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -107,11 +107,11 @@ export default function OrdersPage() {
                           <ShoppingBag size={10} className="text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-bold text-slate-900 truncate">{order.order_number}</p>
-                          <p className="text-[8px] text-slate-500 truncate">{order.customer?.full_name || 'Unknown'}</p>
+                          <p className="text-[11px] font-bold text-slate-900 truncate">{order.order_number}</p>
+                          <p className="text-[10px] text-slate-500 truncate">{order.customer?.full_name || 'Unknown'}</p>
                         </div>
                       </div>
-                      <div className={`px-1.5 py-0.5 rounded-md text-[8px] font-bold flex-shrink-0 ${config.color}`}>
+                      <div className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold flex-shrink-0 ${config.color}`}>
                         {config.label}
                       </div>
                     </div>
@@ -120,16 +120,16 @@ export default function OrdersPage() {
                     <div className="grid grid-cols-2 gap-1.5 mb-2">
                       <div className="flex items-center gap-1">
                         <Calendar size={8} className="text-slate-400" />
-                        <span className="text-[8px] text-slate-500">{new Date(order.created_at).toLocaleDateString()}</span>
+                        <span className="text-[10px] text-slate-500">{new Date(order.created_at).toLocaleDateString()}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <TrendingUp size={8} className="text-slate-400" />
-                        <span className="text-[8px] font-medium text-slate-900">{formatCurrency(order.amount_cents)}</span>
+                        <span className="text-[10px] font-medium text-slate-900">{formatCurrency(order.amount_cents)}</span>
                       </div>
                     </div>
 
                     {/* Payment Method & Delivery Status */}
-                    <div className="flex items-center justify-between mb-2 text-[8px]">
+                    <div className="flex items-center justify-between mb-2 text-[10px]">
                       <div className="flex items-center gap-1">
                         <span className="text-slate-500">Payment:</span>
                         <span className="font-medium text-slate-900 capitalize">{order.payment_method || 'N/A'}</span>
@@ -147,8 +147,8 @@ export default function OrdersPage() {
                     {/* Account Info */}
                     <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                       <div className="flex items-center gap-1 min-w-0">
-                        <span className="text-[8px] text-slate-500">Account:</span>
-                        <span className="text-[9px] font-medium text-slate-900 truncate">{order.account?.username || 'N/A'}</span>
+                        <span className="text-[10px] text-slate-500">Account:</span>
+                        <span className="text-[11px] font-medium text-slate-900 truncate">{order.account?.username || 'N/A'}</span>
                       </div>
                       <ChevronRight size={10} className="text-slate-400 flex-shrink-0" />
                     </div>

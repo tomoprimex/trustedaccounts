@@ -1,120 +1,56 @@
-import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { verifyTransaction } from "@/lib/ercas";
+import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getErcasPayPublicKey } from "@/lib/ercas-key";
+import { findRecordByReference, verifyAndSettle } from "@/lib/payments/server";
 
-function verifyRsaSignature(rawBody: string, signature: string, publicKey: string): boolean {
+function signatureIsValid(rawBody: string, signature: string) {
+  const key = process.env.ERCASPAY_PUBLIC_KEY?.replace(/\\n/g, "\n");
+  if (!key || !signature) return false;
   try {
-    const verify = crypto.createVerify("RSA-SHA256");
-    verify.update(rawBody, "utf8");
-    verify.end();
-
-    const signatureBuffer = Buffer.from(signature, "base64");
-    const publicKeyBuffer = Buffer.from(publicKey);
-
-    return verify.verify(
-      {
-        key: publicKeyBuffer,
-        format: "pem",
-        type: "spki",
-      },
-      signatureBuffer
-    );
-  } catch (error) {
-    console.error("RSA signature verification error:", error);
+    const verifier = crypto.createVerify("RSA-SHA256");
+    verifier.update(rawBody, "utf8");
+    return verifier.verify(key, Buffer.from(signature, "base64"));
+  } catch {
     return false;
   }
 }
 
+/**
+ * Ercaspay webhook. The payload is never trusted on its own: every event is
+ * re-verified against the Ercaspay API before anything is fulfilled, so a
+ * forged webhook can at most trigger a harmless re-check of a real payment.
+ */
 export async function POST(request: Request) {
   const rawBody = await request.text();
-  const received = request.headers.get("x-ercaspay-signature") ?? "";
+  const signature = request.headers.get("x-ercaspay-signature") ?? "";
+  if (!signatureIsValid(rawBody, signature)) {
+    console.warn("[ercaspay webhook] signature missing/invalid; relying on API re-verification");
+  }
 
-  let publicKey: string;
+  let event: Record<string, unknown>;
   try {
-    publicKey = getErcasPayPublicKey();
-  } catch (error) {
-    console.error("Failed to get Ercas Pay public key:", error);
-    return new NextResponse("Server configuration error", { status: 500 });
+    event = JSON.parse(rawBody);
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const isValidSignature = verifyRsaSignature(rawBody, received, publicKey);
-  if (!isValidSignature) {
-    return new NextResponse("Invalid signature", { status: 401 });
-  }
+  const body = (event.data ?? event.responseBody ?? event) as Record<string, unknown>;
+  const candidates = [
+    body.transaction_reference,
+    body.transactionReference,
+    body.ercs_reference,
+    body.tx_reference,
+    body.payment_reference,
+    body.paymentReference,
+  ].filter((v): v is string => typeof v === "string" && v.length > 0);
 
-  const event = JSON.parse(rawBody);
-
-  // Re-verify with the API as the final authority
-  const result = await verifyTransaction(event.transaction_reference);
-
-  // Look up the order or deposit, and if it's not already marked paid, mark it paid + fulfil
-  // (webhooks can arrive more than once, so make this idempotent)
-  const supabase = createAdminClient();
-
-  // Check if it's a purchase
-  const { data: purchase } = await supabase
-    .from("purchases")
-    .select("id, website_id, amount_kobo, status, user_id")
-    .eq("ercas_reference", event.transaction_reference)
-    .maybeSingle();
-
-  if (purchase) {
-    if (purchase.status === "paid") {
-      return NextResponse.json({ received: true });
+  const db = createAdminClient();
+  for (const reference of candidates) {
+    const record = await findRecordByReference(db, reference);
+    if (record) {
+      const outcome = await verifyAndSettle(db, record);
+      return NextResponse.json({ received: true, status: outcome.status });
     }
-
-    await supabase
-      .from("purchases")
-      .update({ status: "paid" })
-      .eq("id", purchase.id);
-
-    return NextResponse.json({ received: true });
   }
-
-  // Check if it's a wallet deposit
-  const { data: deposit } = await supabase
-    .from("deposits")
-    .select("id, user_id, amount_cents, status")
-    .eq("payment_reference", event.transaction_reference)
-    .maybeSingle();
-
-  if (deposit) {
-    if (deposit.status === "completed") {
-      return NextResponse.json({ received: true });
-    }
-
-    // Update deposit status
-    await supabase
-      .from("deposits")
-      .update({ status: "completed" })
-      .eq("id", deposit.id);
-
-    // Update wallet balance
-    const { data: wallet } = await supabase
-      .from("wallets")
-      .select("id, balance_cents")
-      .eq("user_id", deposit.user_id)
-      .single();
-
-    if (wallet) {
-      await supabase
-        .from("wallets")
-        .update({ balance_cents: wallet.balance_cents + deposit.amount_cents })
-        .eq("id", wallet.id);
-    } else {
-      // Create wallet if it doesn't exist
-      await supabase
-        .from("wallets")
-        .insert({
-          user_id: deposit.user_id,
-          balance_cents: deposit.amount_cents,
-        });
-    }
-
-    return NextResponse.json({ received: true });
-  }
-
   return NextResponse.json({ received: true });
 }

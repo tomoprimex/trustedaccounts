@@ -53,7 +53,7 @@ export function PlatformDistribution({ data }: PlatformDistributionProps) {
       className="bg-white rounded-xl sm:rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-3 sm:p-4 sm:p-6"
     >
       <div className="mb-3 sm:mb-4 sm:mb-6">
-        <h2 className="text-base sm:text-lg sm:text-xl font-bold text-[#1E3A8A]">Platform Distribution</h2>
+        <h2 className="text-base sm:text-lg sm:text-xl font-bold text-blue-900">Platform Distribution</h2>
         <p className="text-xs sm:text-sm text-slate-500 mt-1">Accounts sold by platform</p>
       </div>
 
@@ -79,7 +79,7 @@ export function PlatformDistribution({ data }: PlatformDistributionProps) {
                     <p className="text-xs sm:text-sm text-slate-500">{platform.count} accounts</p>
                   </div>
                 </div>
-                <span className="text-sm sm:text-base sm:text-lg font-bold text-[#1E3A8A] shrink-0">{platform.percentage}%</span>
+                <span className="text-sm sm:text-base sm:text-lg font-bold text-blue-900 shrink-0">{platform.percentage}%</span>
               </div>
               <div className="h-1 sm:h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden">
                 <motion.div
@@ -97,7 +97,7 @@ export function PlatformDistribution({ data }: PlatformDistributionProps) {
       <div className="mt-3 sm:mt-4 sm:mt-6 pt-3 sm:pt-4 sm:pt-6 border-t border-slate-100">
         <div className="flex items-center justify-between">
           <span className="text-xs sm:text-sm text-slate-500">Total Accounts</span>
-          <span className="text-base sm:text-lg sm:text-xl font-bold text-[#1E3A8A]">{total}</span>
+          <span className="text-base sm:text-lg sm:text-xl font-bold text-blue-900">{total}</span>
         </div>
       </div>
     </motion.div>

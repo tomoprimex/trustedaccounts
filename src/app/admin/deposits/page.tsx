@@ -71,13 +71,13 @@ export default function AdminDepositsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+        return 'bg-amber-100 text-amber-700 dark:text-amber-400';
       case 'completed':
-        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+        return 'bg-green-100 text-green-700 dark:text-green-400';
       case 'failed':
-        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+        return 'bg-red-100 text-red-700 dark:text-red-400';
       default:
-        return 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300';
+        return 'bg-slate-100 text-slate-700';
     }
   };
 
@@ -88,7 +88,7 @@ export default function AdminDepositsPage() {
       case 'transfer':
         return <Building2 size={16} className="text-blue-600 dark:text-blue-400" />;
       default:
-        return <Wallet size={16} className="text-slate-600 dark:text-slate-400" />;
+        return <Wallet size={16} className="text-slate-600" />;
     }
   };
 
@@ -112,10 +112,10 @@ export default function AdminDepositsPage() {
               <Wallet size={16} className="text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-blue-500">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent dark:from-blue-400">
                 Deposits
               </h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Manage wallet deposits</p>
+              <p className="text-sm text-slate-500">Manage wallet deposits</p>
             </div>
           </div>
         </motion.div>
@@ -129,11 +129,11 @@ export default function AdminDepositsPage() {
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-amber-600/10 to-amber-600/10 rounded-xl blur-md" />
-            <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-amber-600/20 dark:bg-slate-800/80 dark:border-amber-500/30 shadow-sm">
+            <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-amber-600/20 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">Pending</p>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{pendingCount}</p>
+                  <p className="text-xs text-slate-600">Pending</p>
+                  <p className="text-2xl font-bold text-slate-900">{pendingCount}</p>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
                   <ClockIcon size={20} className="text-white" />
@@ -144,11 +144,11 @@ export default function AdminDepositsPage() {
 
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 to-green-600/10 rounded-xl blur-md" />
-            <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-green-600/20 dark:bg-slate-800/80 dark:border-green-500/30 shadow-sm">
+            <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-green-600/20 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">Completed</p>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{completedCount}</p>
+                  <p className="text-xs text-slate-600">Completed</p>
+                  <p className="text-2xl font-bold text-slate-900">{completedCount}</p>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
                   <Check size={20} className="text-white" />
@@ -159,11 +159,11 @@ export default function AdminDepositsPage() {
 
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 to-red-600/10 rounded-xl blur-md" />
-            <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-red-600/20 dark:bg-slate-800/80 dark:border-red-500/30 shadow-sm">
+            <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-red-600/20 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">Failed</p>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{failedCount}</p>
+                  <p className="text-xs text-slate-600">Failed</p>
+                  <p className="text-2xl font-bold text-slate-900">{failedCount}</p>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
                   <X size={20} className="text-white" />
@@ -187,13 +187,13 @@ export default function AdminDepositsPage() {
               placeholder="Search by email or reference..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white/80 backdrop-blur border-2 border-blue-600/20 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all dark:bg-slate-800/80 dark:text-white dark:border-blue-500/30"
+              className="w-full pl-10 pr-4 py-2 bg-white/80 backdrop-blur border-2 border-blue-600/20 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
             />
           </div>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as any)}
-            className="px-4 py-2 bg-white/80 backdrop-blur border-2 border-blue-600/20 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all dark:bg-slate-800/80 dark:text-white dark:border-blue-500/30"
+            className="px-4 py-2 bg-white/80 backdrop-blur border-2 border-blue-600/20 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -215,10 +215,10 @@ export default function AdminDepositsPage() {
             </div>
           ) : filteredDeposits.length === 0 ? (
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-8 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm text-center">
-                <Wallet size={48} className="mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-                <p className="text-slate-600 dark:text-slate-400">No deposits found</p>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:to-blue-600/10" />
+              <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-8 border-2 border-blue-600/20 shadow-sm text-center">
+                <Wallet size={48} className="mx-auto mb-4 text-slate-300" />
+                <p className="text-slate-600">No deposits found</p>
               </div>
             </div>
           ) : (
@@ -230,8 +230,8 @@ export default function AdminDepositsPage() {
                 transition={{ delay: 0.2 + index * 0.05 }}
                 className="relative"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-                <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:to-blue-600/10" />
+                <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 shadow-sm">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
@@ -240,22 +240,22 @@ export default function AdminDepositsPage() {
                         </span>
                         <div className="flex items-center gap-1">
                           {getPaymentMethodIcon(deposit.payment_method)}
-                          <span className="text-xs text-slate-600 dark:text-slate-400 capitalize">
+                          <span className="text-xs text-slate-600 capitalize">
                             {deposit.payment_method}
                           </span>
                         </div>
                       </div>
 
-                      <p className="text-sm font-medium text-slate-900 dark:text-white mb-1">
+                      <p className="text-sm font-medium text-slate-900 mb-1">
                         {deposit.profiles?.email || 'Unknown User'}
                       </p>
 
-                      <div className="flex items-center gap-4 text-xs text-slate-600 dark:text-slate-400">
+                      <div className="flex items-center gap-4 text-xs text-slate-600">
                         <span>Amount: ₦{(deposit.amount_cents / 100).toLocaleString()}</span>
                         <span>Ref: {deposit.payment_reference}</span>
                       </div>
 
-                      <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                      <p className="text-xs text-slate-500 mt-1">
                         {new Date(deposit.created_at).toLocaleString()}
                       </p>
                     </div>

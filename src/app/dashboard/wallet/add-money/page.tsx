@@ -1,377 +1,166 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
+import { AlertCircle, ArrowLeft, CreditCard, Loader2, Lock, ShieldCheck, Zap } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import { Wallet, ArrowLeft, CreditCard, Sparkles, Check } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { createDeposit } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/client";
 
-const supabase = createClient();
+type Provider = "paystack" | "ercas";
 
-declare global {
-  interface Window {
-    PaystackPop: any;
-  }
-}
+const PRESETS = [1000, 2500, 5000, 10000, 25000, 50000];
+const MIN = 100;
+const MAX = 5_000_000;
+
+const providers: { id: Provider; title: string; caption: string; icon: typeof CreditCard; accent: string }[] = [
+  { id: "paystack", title: "Paystack", caption: "Card, bank transfer, USSD", icon: CreditCard, accent: "from-emerald-500 to-emerald-600" },
+  { id: "ercas", title: "Ercas Pay", caption: "Card, transfer, USSD, QR", icon: Zap, accent: "from-violet-500 to-violet-600" },
+];
 
 export default function AddMoneyPage() {
-  const router = useRouter();
-  const [step, setStep] = useState<'form' | 'success' | 'failed'>('form');
-  const [amount, setAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'ercas' | 'card' | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
+  const [amount, setAmount] = useState("");
+  const [provider, setProvider] = useState<Provider>("paystack");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function loadUserEmail() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserEmail(user.email || '');
-      }
+  const value = Number(amount);
+  const valid = Number.isFinite(value) && value >= MIN && value <= MAX;
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!valid) {
+      setError(`Enter an amount between ₦${MIN.toLocaleString()} and ₦${MAX.toLocaleString()}`);
+      return;
     }
-    loadUserEmail();
-
-    // Load Paystack script
-    const script = document.createElement('script');
-    script.src = 'https://js.paystack.co/v1/inline.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  const handlePaystackPayment = (depositId: string) => {
-    const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "";
-    const amountInKobo = parseFloat(amount) * 100; // Convert Naira to kobo for Paystack
-    const reference = `WALLET-${depositId}`;
-
-    const handler = (window as any).PaystackPop.setup({
-      key: publicKey,
-      email: userEmail,
-      amount: amountInKobo,
-      currency: 'NGN',
-      ref: reference,
-      metadata: {
-        deposit_id: depositId,
-        custom_fields: [
-          {
-            display_name: "Wallet Deposit",
-            variable_name: "wallet_deposit",
-            value: "TrustedAccounts"
-          }
-        ]
-      },
-      onClose: function() {
-        // User closed payment window
-        setStep('failed');
-      },
-      callback: function(response: any) {
-        console.log('Paystack callback received:', response);
-
-        // Payment successful - call API route to complete deposit
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          console.log('Session:', session ? 'has session' : 'no session');
-
-          if (!session) {
-            console.error('No session available');
-            setStep('failed');
-            return;
-          }
-
-          fetch('/api/complete-deposit', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({ depositId }),
-          })
-            .then(res => {
-              console.log('API response status:', res.status);
-              return res.json();
-            })
-            .then(result => {
-              console.log('API result:', result);
-              if (result.success) {
-                console.log('Setting step to success');
-                setStep('success');
-              } else {
-                console.error('Error completing deposit:', result.error);
-                setStep('failed');
-              }
-            })
-            .catch((error) => {
-              console.error('Error completing deposit:', error);
-              setStep('failed');
-            });
-        }).catch((error) => {
-          console.error('Error getting session:', error);
-          setStep('failed');
-        });
-      }
-    });
-
-    handler.openIframe();
-  };
-
-  const handleErcasPayment = async (depositId: string) => {
+    setBusy(true);
+    setError("");
     try {
-      const res = await fetch('/api/ercas-initialize-deposit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          depositId,
-          amount: parseFloat(amount),
-        }),
+      const { data: auth } = await createClient().auth.getSession();
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(auth.session ? { Authorization: `Bearer ${auth.session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ type: "deposit", provider, amount: value }),
       });
-
-      const data = await res.json();
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else {
-        alert('Failed to initialize Ercas Pay payment');
-        setStep('failed');
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        window.location.href = "/login";
+        return;
       }
-    } catch (error) {
-      console.error('Ercas Pay error:', error);
-      alert('Failed to initialize payment');
-      setStep('failed');
+      if (!res.ok || !data.checkoutUrl) throw new Error(data.error || "Could not start payment");
+      window.location.href = data.checkoutUrl;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not start payment");
+      setBusy(false);
     }
-  };
+  }
 
-  const handleContinue = async () => {
-    if (!amount || parseFloat(amount) <= 0) {
-      alert('Please enter a valid amount');
-      return;
-    }
-
-    if (!paymentMethod) {
-      alert('Please select a payment method');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const amountCents = Math.round(parseFloat(amount) * 100);
-
-        // Generate unique reference
-        const reference = `WALLET-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        // Create deposit first
-        const deposit = await createDeposit(user.id, amountCents, paymentMethod, reference);
-
-        if (paymentMethod === 'card') {
-          // Use deposit ID as reference for Paystack
-          handlePaystackPayment(deposit.id);
-        } else if (paymentMethod === 'ercas') {
-          // Use deposit ID for Ercas Pay
-          handleErcasPayment(deposit.id);
-        }
-      }
-    } catch (error) {
-      console.error('Error creating deposit:', error);
-      alert('Failed to create deposit');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBack = () => {
-    router.push('/dashboard/wallet');
-  };
-
-  if (step === 'form') {
-    return (
-      <DashboardLayout>
-        <div className="space-y-3 px-2 sm:px-4">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-3"
+  return (
+    <DashboardLayout>
+      <div className="mx-auto max-w-xl">
+        <motion.header initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="mb-6 flex items-center gap-3">
+          <Link
+            href="/dashboard/wallet"
+            aria-label="Back to wallet"
+            className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100"
           >
-            <div className="flex items-center gap-2 mb-1">
-              <button
-                onClick={handleBack}
-                className="p-1.5 bg-gradient-to-br from-blue-600 to-blue-600 rounded-lg"
-              >
-                <ArrowLeft size={14} className="text-white" />
-              </button>
-              <div className="p-1.5 bg-gradient-to-br from-blue-600 to-blue-600 rounded-lg">
-                <Wallet size={14} className="text-white" />
-              </div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-blue-500">
-                Add Money
-              </h1>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Deposit funds into your wallet</p>
-          </motion.div>
+            <ArrowLeft size={16} />
+          </Link>
+          <div>
+            <h1 className="app-page-title">Add money</h1>
+            <p className="app-page-subtitle">Top up your wallet to buy accounts instantly.</p>
+          </div>
+        </motion.header>
 
-          {/* Amount Input */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="relative"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-            <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm">
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Amount (₦)
-              </label>
+        <motion.form
+          onSubmit={submit}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="app-surface space-y-6 p-5 sm:p-6"
+        >
+          <div>
+            <label htmlFor="amount" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Amount
+            </label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-slate-400">₦</span>
               <input
-                type="number"
+                id="amount"
+                inputMode="decimal"
+                autoFocus
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="Enter amount"
-                className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all dark:bg-slate-700/50 dark:text-white dark:border-blue-500/30"
+                onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
+                placeholder="0"
+                className="w-full rounded-2xl border-2 border-slate-200 bg-white py-4 pl-10 pr-4 text-3xl font-extrabold tracking-tight text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
               />
             </div>
-          </motion.div>
-
-          {/* Payment Method */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="relative"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-            <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm">
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-3">
-                Payment Method
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {/* Ercas Pay - First */}
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {PRESETS.map((p) => (
                 <button
-                  onClick={() => setPaymentMethod('ercas')}
-                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
-                    paymentMethod === 'ercas'
-                      ? 'border-purple-600 bg-purple-50 dark:border-purple-500 dark:bg-purple-900/30'
-                      : 'border-slate-200 hover:border-purple-600/50 dark:border-slate-700 dark:hover:border-purple-500/50'
+                  key={p}
+                  type="button"
+                  onClick={() => setAmount(String(p))}
+                  className={`rounded-xl border px-2 py-2 text-xs font-semibold transition ${
+                    value === p ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                   }`}
                 >
-                  <CreditCard size={24} className={paymentMethod === 'ercas' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400'} />
-                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Ercas Pay</span>
+                  ₦{p.toLocaleString()}
                 </button>
-                {/* Paystack - Second */}
-                <button
-                  onClick={() => setPaymentMethod('card')}
-                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
-                    paymentMethod === 'card'
-                      ? 'border-blue-600 bg-blue-50 dark:border-blue-500 dark:bg-blue-900/30'
-                      : 'border-slate-200 hover:border-blue-600/50 dark:border-slate-700 dark:hover:border-blue-500/50'
-                  }`}
-                >
-                  <CreditCard size={24} className={paymentMethod === 'card' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'} />
-                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Paystack</span>
-                </button>
-              </div>
+              ))}
             </div>
-          </motion.div>
+          </div>
 
-          {/* Continue Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-          >
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleContinue}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/20 disabled:opacity-50"
-            >
-              <Sparkles size={12} />
-              {loading ? 'Processing...' : 'Continue'}
-            </motion.button>
-          </motion.div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (step === 'success') {
-    return (
-      <DashboardLayout>
-        <div className="space-y-3 px-2 sm:px-4">
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 to-green-600/10 rounded-xl blur-md" />
-            <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-6 border-2 border-green-600/20 dark:bg-slate-800/80 dark:border-green-500/30 shadow-sm text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-4">
-                <Check size={32} className="text-white" />
-              </div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Payment Confirmed</h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-                Your deposit of ₦{parseFloat(amount).toLocaleString()} has been recorded and your wallet balance has been updated.
-              </p>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => router.push('/dashboard/wallet')}
-                className="w-full px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/20"
-              >
-                OK
-              </motion.button>
+          <fieldset>
+            <legend className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">Pay with</legend>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {providers.map((p) => {
+                const Icon = p.icon;
+                const selected = provider === p.id;
+                return (
+                  <label
+                    key={p.id}
+                    className={`flex cursor-pointer items-center gap-3 rounded-2xl border-2 p-3 transition ${
+                      selected ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <input type="radio" name="provider" className="sr-only" checked={selected} onChange={() => setProvider(p.id)} />
+                    <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${p.accent} text-white`}>
+                      <Icon size={18} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-bold text-slate-900">{p.title}</span>
+                      <span className="block text-xs text-slate-500">{p.caption}</span>
+                    </span>
+                  </label>
+                );
+              })}
             </div>
-          </motion.div>
-        </div>
-      </DashboardLayout>
-    );
-  }
+          </fieldset>
 
-  if (step === 'failed') {
-    return (
-      <DashboardLayout>
-        <div className="space-y-3 px-2 sm:px-4">
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 to-red-600/10 rounded-xl blur-md" />
-            <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-6 border-2 border-red-600/20 dark:bg-slate-800/80 dark:border-red-500/30 shadow-sm text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center mx-auto mb-4">
-                <CreditCard size={32} className="text-white" />
-              </div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Payment Failed</h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-                Your payment could not be processed. Please try again.
-              </p>
-              <div className="flex gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setStep('form')}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/20"
-                >
-                  Try Again
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => router.push('/dashboard/wallet')}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl font-semibold"
-                >
-                  Cancel
-                </motion.button>
-              </div>
+          {error && (
+            <div role="alert" className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+              <AlertCircle size={16} className="mt-0.5 shrink-0" />
+              {error}
             </div>
-          </motion.div>
-        </div>
-      </DashboardLayout>
-    );
-  }
+          )}
 
-  return null;
+          <button
+            type="submit"
+            disabled={busy || !valid}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {busy ? <Loader2 size={16} className="animate-spin" /> : <Lock size={15} />}
+            {busy ? "Redirecting to secure checkout…" : valid ? `Add ₦${value.toLocaleString()}` : "Add money"}
+          </button>
+          <p className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500">
+            <ShieldCheck size={13} /> Your wallet is credited only after the payment is verified
+          </p>
+        </motion.form>
+      </div>
+    </DashboardLayout>
+  );
 }

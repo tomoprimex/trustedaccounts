@@ -15,7 +15,7 @@ export function Testimonials() {
     <section id="testimonials" className="bg-white px-4 py-12 lg:px-6 lg:py-16">
       <div className="mx-auto max-w-7xl">
         <FadeIn className="mx-auto max-w-2xl text-center">
-          <p className="text-[10px] font-bold uppercase tracking-[.18em] text-blue-600">Real buyers, real experiences</p>
+          <p className="text-[11px] font-bold uppercase tracking-[.18em] text-blue-600">Real buyers, real experiences</p>
           <h2 className="mt-3 text-2xl font-extrabold tracking-[-.07em] bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent sm:text-3xl">
             A marketplace people<br />
             <span className="font-serif font-semibold italic text-blue-600">come back to.</span>
@@ -40,12 +40,12 @@ export function Testimonials() {
                   </blockquote>
                 </div>
                 <figcaption className="mt-5 flex items-center gap-2 border-t border-slate-200 pt-3">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-blue-100 text-[10px] font-extrabold text-blue-600">
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-blue-100 text-[11px] font-extrabold text-blue-600">
                     {testimonial.initials}
                   </span>
                   <span>
-                    <strong className="block text-[10px] font-extrabold text-slate-900">{testimonial.name}</strong>
-                    <small className="mt-0.5 block text-[9px] text-slate-500">{testimonial.role}</small>
+                    <strong className="block text-[11px] font-extrabold text-slate-900">{testimonial.name}</strong>
+                    <small className="mt-0.5 block text-[11px] text-slate-500">{testimonial.role}</small>
                   </span>
                 </figcaption>
               </motion.figure>

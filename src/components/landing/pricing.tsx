@@ -19,7 +19,7 @@ export function Pricing() {
       <div className="relative mx-auto max-w-7xl">
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <FadeIn>
-            <p className="text-[10px] font-bold uppercase tracking-[.18em] text-blue-300">Ready to find yours?</p>
+            <p className="text-[11px] font-bold uppercase tracking-[.18em] text-blue-300">Ready to find yours?</p>
             <h2 className="mt-4 max-w-2xl text-2xl font-extrabold leading-[1.03] tracking-[-.07em] sm:text-4xl">
               Your next account<br />
               <span className="font-serif font-semibold italic text-cyan-300">is waiting.</span>
@@ -31,7 +31,7 @@ export function Pricing() {
           <FadeIn delay={.1}>
             <Link 
               href="/signup" 
-              className="group inline-flex items-center gap-6 rounded-xl bg-white px-4 py-3 text-[10px] font-extrabold text-blue-600 shadow-xl transition hover:-translate-y-1 hover:bg-blue-50"
+              className="group inline-flex items-center gap-6 rounded-xl bg-white px-4 py-3 text-[11px] font-extrabold text-blue-600 shadow-xl transition hover:-translate-y-1 hover:bg-blue-50"
             >
               Browse available accounts 
               <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
@@ -43,11 +43,11 @@ export function Pricing() {
             <div key={title} className="bg-blue-800/50 backdrop-blur p-4">
               <Icon size={16} className="text-cyan-300" />
               <h3 className="mt-3 text-xs font-extrabold">{title}</h3>
-              <p className="mt-1 text-[10px] text-blue-100/60">{copy}</p>
+              <p className="mt-1 text-[11px] text-blue-100/60">{copy}</p>
             </div>
           ))}
         </div>
-        <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[10px] text-blue-100/60">
+        <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-blue-100/60">
           <span className="inline-flex items-center gap-1">
             <CircleDollarSign size={12} /> 
             Transparent seller pricing

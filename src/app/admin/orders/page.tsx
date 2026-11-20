@@ -142,13 +142,13 @@ export default function AdminOrdersPage() {
               placeholder="Search orders..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              className="w-full pl-10 pr-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             />
           </div>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-3 bg-white/50 backdrop-blur border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            className="px-4 py-3 bg-white/50 backdrop-blur border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -240,7 +240,7 @@ export default function AdminOrdersPage() {
           <h2 className="text-xl font-bold text-slate-800 mb-4">
             All Orders ({otherOrders.length})
           </h2>
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/20 overflow-hidden">
+          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-slate-200 overflow-hidden">
             {otherOrders.length === 0 ? (
               <div className="p-8 text-center text-slate-500">
                 No orders found

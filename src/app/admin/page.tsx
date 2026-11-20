@@ -60,7 +60,7 @@ export default function AdminDashboard() {
       value: `₦${((stats?.totalRevenue || 0) / 100).toLocaleString()}`,
       change: "+23%",
       icon: DollarSign,
-      gradient: "from-slate-800 to-blue-600",
+      gradient: "from-ink-800 to-blue-600",
       glow: "shadow-slate-900/20",
     },
     {
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
               className="relative group"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-green-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500" />
-              <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-lg hover:shadow-2xl transition-all duration-300">
+              <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-slate-200 shadow-lg hover:shadow-2xl transition-all duration-300">
                 <div className="flex items-start justify-between mb-4">
                   <div className={`p-3 rounded-2xl bg-gradient-to-br ${stat.gradient} ${stat.glow} shadow-lg`}>
                     <stat.icon size={24} className="text-white" />
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-800/10 to-indigo-900/10 rounded-3xl blur-xl" />
-            <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-lg">
+            <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-slate-200 shadow-lg">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-slate-800">Top Platforms</h2>
                 <div className="p-2 bg-blue-50 rounded-xl">
@@ -197,7 +197,7 @@ export default function AdminDashboard() {
         >
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-slate-800/10 to-blue-600/10 rounded-3xl blur-xl" />
-            <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-lg">
+            <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-slate-200 shadow-lg">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-slate-800">Monthly Revenue</h2>
                 <div className="p-2 bg-slate-50 rounded-xl">
@@ -219,7 +219,7 @@ export default function AdminDashboard() {
                         className="flex flex-col items-center gap-2"
                       >
                         <div className="w-full bg-gradient-to-t from-blue-600 to-blue-600 rounded-t-lg relative group">
-                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-ink-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                             ₦{(value / 100).toLocaleString()}
                           </div>
                         </div>

@@ -60,27 +60,27 @@ export function Sidebar() {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed left-0 top-0 z-50 h-full w-[min(86vw,320px)] overflow-hidden bg-[#0a2342] text-white shadow-2xl lg:hidden dark:bg-[#0a1929]"
+            className="fixed left-0 top-0 z-50 h-full w-[min(86vw,320px)] overflow-hidden bg-[#0a2342] text-white shadow-2xl lg:hidden"
           >
             <div className="flex h-full flex-col">
               <div className="border-b border-white/10 px-4 py-4 sm:px-5 relative">
                 <Link href="/dashboard" className="flex items-center gap-3" onClick={() => setMobileOpen(false)}>
-                  <div className="h-10 w-10 shrink-0 rounded-xl bg-white flex items-center justify-center overflow-hidden">
+                  <div className="h-10 w-10 shrink-0 rounded-xl bg-glass flex items-center justify-center overflow-hidden">
                     <img src="/logo.png" alt="TrustedAccounts" className="h-8 w-8 object-contain" />
                   </div>
                   <span>
                     <strong className="block text-base tracking-tight font-extrabold text-white">TrustedAccounts</strong>
-                    <small className="block text-[10px] text-white/70 font-medium">Customer workspace</small>
+                    <small className="block text-[11px] text-white/70 font-medium">Customer workspace</small>
                   </span>
                 </Link>
                 {/* Wallet Balance */}
                 <div className="flex items-center justify-between px-2 py-2">
                   <div className="flex items-center gap-2">
                     <Wallet size={14} className="text-white/70" />
-                    <span className="text-[10px] text-white/70 font-medium">Balance:</span>
+                    <span className="text-[11px] text-white/70 font-medium">Balance:</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-white">
+                    <span className="text-[11px] font-bold text-white">
                       {balanceHidden ? '••••••' : `₦${(walletBalance / 100).toLocaleString()}`}
                     </span>
                     <button
@@ -95,7 +95,7 @@ export function Sidebar() {
                   type="button" 
                   aria-label="Close dashboard navigation" 
                   onClick={() => setMobileOpen(false)} 
-                  className="absolute right-4 top-4 rounded-lg bg-white/10 p-2 hover:bg-white/20 transition-colors"
+                  className="absolute right-4 top-4 rounded-lg bg-glass/10 p-2 hover:bg-glass/20 transition-colors"
                 >
                   <X size={18} />
                 </button>
@@ -105,7 +105,7 @@ export function Sidebar() {
                   <Link key={item.id} href={item.href} onClick={() => setMobileOpen(false)}>
                     <motion.span
                       whileHover={{ x: 3 }}
-                      className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-extrabold transition ${active === item.id ? "bg-white/15 text-white" : "text-white/75 hover:bg-white/10 hover:text-white"}`}
+                      className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-extrabold transition ${active === item.id ? "bg-glass/15 text-white" : "text-white/75 hover:bg-glass/10 hover:text-white"}`}
                     >
                       <item.icon size={17} className="shrink-0" />
                       {item.label}
@@ -116,7 +116,7 @@ export function Sidebar() {
               </nav>
               <div className="space-y-2 border-t border-white/10 p-3 sm:p-4">
                 <div className="flex items-center justify-center">
-                  <ThemeToggle />
+                  <ThemeToggle tone="onDark" />
                 </div>
                 <a
                   href="https://www.tiktok.com/@trustedaccounts"
@@ -144,17 +144,17 @@ export function Sidebar() {
     <motion.aside 
       initial={false} 
       animate={{ width: collapsed ? 80 : 280 }} 
-      className="hidden lg:flex fixed left-0 top-0 z-30 h-full bg-[#0a2342] text-white shadow-2xl dark:bg-[#0a1929]"
+      className="hidden lg:flex fixed left-0 top-0 z-30 h-full bg-[#0a2342] text-white shadow-2xl"
     >
       <div className="flex h-full flex-col">
         <div className="border-b border-white/10 px-4 py-4 sm:px-5">
           <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="h-10 w-10 shrink-0 rounded-xl bg-white flex items-center justify-center overflow-hidden">
+            <div className="h-10 w-10 shrink-0 rounded-xl bg-glass flex items-center justify-center overflow-hidden">
               <img src="/logo.png" alt="TrustedAccounts" className="h-8 w-8 object-contain" />
             </div>
             {!collapsed && <span>
               <strong className="block text-base tracking-tight font-extrabold text-white">TrustedAccounts</strong>
-              <small className="block text-[10px] text-white/70 font-medium">Customer workspace</small>
+              <small className="block text-[11px] text-white/70 font-medium">Customer workspace</small>
             </span>}
           </Link>
           {/* Wallet Balance */}
@@ -162,10 +162,10 @@ export function Sidebar() {
             <div className="flex items-center justify-between px-2 py-2">
               <div className="flex items-center gap-2">
                 <Wallet size={14} className="text-white/70" />
-                <span className="text-[10px] text-white/70 font-medium">Balance:</span>
+                <span className="text-[11px] text-white/70 font-medium">Balance:</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-white">
+                <span className="text-[11px] font-bold text-white">
                   {balanceHidden ? '••••••' : `₦${(walletBalance / 100).toLocaleString()}`}
                 </span>
                 <button
@@ -183,7 +183,7 @@ export function Sidebar() {
             <Link key={item.id} href={item.href}>
               <motion.span
                 whileHover={{ x: collapsed ? 0 : 3 }}
-                className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-extrabold transition ${active === item.id ? "bg-white/15 text-white" : "text-white/75 hover:bg-white/10 hover:text-white"}`}
+                className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-extrabold transition ${active === item.id ? "bg-glass/15 text-white" : "text-white/75 hover:bg-glass/10 hover:text-white"}`}
               >
                 <item.icon size={17} className="shrink-0" />
                 {!collapsed && item.label}
@@ -196,13 +196,13 @@ export function Sidebar() {
           <button
             type="button"
             onClick={() => setCollapsed(!collapsed)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2.5 text-xs font-bold text-white/70 hover:bg-white/20"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-glass/10 px-3 py-2.5 text-xs font-bold text-white/70 hover:bg-glass/20"
           >
             <ChevronRight size={16} className={collapsed ? "rotate-180" : ""} />
             {!collapsed && "Collapse"}
           </button>
           <div className="flex items-center justify-center">
-            <ThemeToggle />
+            <ThemeToggle tone="onDark" />
           </div>
           {!collapsed && (
             <a

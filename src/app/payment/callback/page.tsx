@@ -1,102 +1,32 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { verifyTransaction as verifyPaystackTransaction } from "@/lib/paystack";
-import { verifyTransaction as verifyErcasTransaction } from "@/lib/ercas";
+import { findRecordByReference, verifyAndSettle } from "@/lib/payments/server";
+import { PaymentResult } from "@/components/payment/payment-result";
 
-export default async function PaymentCallbackPage({
+export const dynamic = "force-dynamic";
+
+/** Legacy callback (?reference= / ?trxref= / ?transRef=) kept for payments started before the upgrade. */
+export default async function LegacyPaymentCallbackPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reference?: string; transaction_reference?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  const { reference, transaction_reference } = await searchParams;
-  const paymentReference = reference || transaction_reference;
-  if (!paymentReference) redirect("/");
+  const params = await searchParams;
+  const references = [
+    params.transRef,
+    params.transaction_reference,
+    params.transactionReference,
+    params.reference,
+    params.trxref,
+  ].filter((v): v is string => !!v);
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (references.length === 0) redirect("/dashboard");
 
-  // Try both Paystack and Ercas Pay verification
-  let verified = null;
-  let isPaystack = false;
-
-  try {
-    verified = await verifyPaystackTransaction(paymentReference);
-    isPaystack = true;
-  } catch (paystackError) {
-    try {
-      verified = await verifyErcasTransaction(paymentReference);
-      isPaystack = false;
-    } catch (ercasError) {
-      // Both failed
-    }
+  const db = createAdminClient();
+  for (const reference of references) {
+    const record = await findRecordByReference(db, reference);
+    if (record) return <PaymentResult outcome={await verifyAndSettle(db, record)} />;
   }
 
-  const isSuccess = verified && (verified.status === "success" || verified.status === "completed");
-
-  if (isSuccess) {
-    const admin = createAdminClient();
-
-    // Check if it's a purchase
-    if (isPaystack) {
-      await admin
-        .from("purchases")
-        .update({ status: "paid" })
-        .eq("paystack_reference", paymentReference)
-        .eq("user_id", user.id);
-    } else {
-      await admin
-        .from("purchases")
-        .update({ status: "paid" })
-        .eq("ercas_reference", paymentReference)
-        .eq("user_id", user.id);
-    }
-
-    // Check if it's a wallet deposit
-    const { data: deposit } = await admin
-      .from("deposits")
-      .select("id, amount_cents, status")
-      .eq("payment_reference", paymentReference)
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (deposit && deposit.status !== "completed") {
-      await admin
-        .from("deposits")
-        .update({ status: "completed" })
-        .eq("id", deposit.id);
-
-      // Update wallet balance
-      const { data: wallet } = await admin
-        .from("wallets")
-        .select("id, balance_cents")
-        .eq("user_id", user.id)
-        .single();
-
-      if (wallet) {
-        await admin
-          .from("wallets")
-          .update({ balance_cents: wallet.balance_cents + deposit.amount_cents })
-          .eq("id", wallet.id);
-      } else {
-        await admin
-          .from("wallets")
-          .insert({
-            user_id: user.id,
-            balance_cents: deposit.amount_cents,
-          });
-      }
-    }
-  }
-
-  return (
-    <main style={{ maxWidth: 600, margin: "40px auto", padding: 16 }}>
-      <h1>{isSuccess ? "Payment successful" : "Payment not completed"}</h1>
-      <p><Link href="/dashboard">Go to dashboard</Link></p>
-    </main>
-  );
+  return <PaymentResult outcome={{ status: "failed", message: "We couldn't find this payment. If you were charged, contact support." }} />;
 }

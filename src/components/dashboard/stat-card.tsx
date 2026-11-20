@@ -24,7 +24,7 @@ export function StatCard({ title, value, change, changeType = "positive", icon: 
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-xs sm:text-sm font-medium text-slate-500 mb-1 sm:mb-2 truncate">{title}</p>
-          <h3 className="text-lg sm:text-2xl sm:text-3xl font-bold text-[#1E3A8A] truncate">{value}</h3>
+          <h3 className="text-lg sm:text-2xl sm:text-3xl font-bold text-blue-900 truncate">{value}</h3>
           {change && (
             <motion.p
               initial={{ opacity: 0 }}

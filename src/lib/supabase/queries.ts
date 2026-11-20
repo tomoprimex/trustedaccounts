@@ -61,7 +61,7 @@ export async function getDashboardStats() {
       supabase.from('revenue').select('amount_cents'),
       supabase.from('orders').select('*', { count: 'exact', head: true }),
       supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
-      supabase.from('accounts').select('*', { count: 'exact', head: true }).eq('status', 'available'),
+      supabase.from('marketplace_accounts').select('id', { count: 'exact', head: true }),
     ]);
 
     totalRevenue = (revenueData?.reduce((sum, r) => sum + (r.amount_cents || 0), 0) || 0) / 100;
@@ -980,17 +980,26 @@ export async function getWebsiteById(websiteId: string) {
   return data;
 }
 
-// Marketplace - Get accounts for sale (without sensitive info)
+// Marketplace - accounts for sale. Reads the `marketplace_accounts` view, which never
+// exposes credentials (password, login email, recovery details, 2FA secrets).
 export async function getMarketplaceAccounts({ limit = 50, offset = 0 }: { limit?: number; offset?: number } = {}) {
   const { data, error } = await supabase
-    .from('accounts')
-    .select('id, platform, username, email, price_cents, currency, status, description, created_at')
-    .eq('status', 'available')
-    .order('created_at', { ascending: false })
+    .from("marketplace_accounts")
+    .select("*")
+    .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (error) throw error;
-  return data;
+  if (!error) return data;
+
+  // Fallback until the security migration has been applied.
+  const fallback = await supabase
+    .from("accounts")
+    .select("id, platform, username, price_cents, currency, status, description, created_at")
+    .eq("status", "available")
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (fallback.error) throw fallback.error;
+  return fallback.data;
 }
 
 // Get purchased accounts for a user (with full details)
@@ -1015,71 +1024,6 @@ export async function getPurchasedAccounts(userId: string) {
   return data;
 }
 
-// Create a purchase (create order and mark account as sold)
-export async function createPurchase(userId: string, accountId: string, paymentMethod: 'ercas' | 'paystack' | 'wallet' = 'paystack', paymentReference?: string) {
-  // Get account details and check if still available
-  const { data: account } = await supabase
-    .from('accounts')
-    .select('*')
-    .eq('id', accountId)
-    .single();
-
-  if (!account) throw new Error('Account not found');
-  if (account.status !== 'available') throw new Error('This account is no longer available');
-
-  // Generate order number
-  const orderNum = `ORD-${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
-
-  // Determine order status based on payment method
-  const isInstantPayment = paymentMethod === 'paystack' || paymentMethod === 'ercas' || paymentMethod === 'wallet';
-  const orderStatus = isInstantPayment ? 'completed' : 'pending';
-  const deliveryStatus = isInstantPayment ? 'delivered' : 'pending';
-
-  // Create order
-  const { data: order, error: orderError } = await supabase
-    .from('orders')
-    .insert({
-      order_number: orderNum,
-      customer_id: userId,
-      account_id: accountId,
-      amount_cents: account.price_cents, // Already in cents from accounts table
-      currency: 'NGN',
-      status: orderStatus,
-      delivery_status: deliveryStatus,
-      payment_method: paymentMethod,
-      payment_reference: paymentReference,
-    })
-    .select()
-    .single();
-
-  if (orderError) throw orderError;
-
-  // Only create revenue record and mark as sold for instant payments
-  if (isInstantPayment) {
-    // Create revenue record
-    const { error: revenueError } = await supabase.from('revenue').insert({
-      order_id: order.id,
-      amount_cents: account.price_cents, // Already in cents from accounts table
-      currency: 'NGN',
-      date: new Date().toISOString().split('T')[0],
-    });
-
-    if (revenueError) {
-      console.error('Error creating revenue record:', revenueError);
-      // Don't throw - revenue record creation shouldn't block the purchase
-    }
-
-    // Mark account as sold
-    const { error: updateError } = await supabase
-      .from('accounts')
-      .update({ status: 'sold' })
-      .eq('id', accountId);
-
-    if (updateError) throw updateError;
-  }
-
-  return order;
-}
 
 // Wallet functions
 export async function getWalletBalance(userId: string) {
@@ -1109,170 +1053,20 @@ export async function getRecentDeposits(userId: string, limit = 10) {
   return data || [];
 }
 
-export async function createDeposit(userId: string, amountCents: number, paymentMethod: 'ercas' | 'card', paymentReference?: string) {
-  const { data, error } = await supabase
-    .from('deposits')
-    .insert({
-      user_id: userId,
-      amount_cents: amountCents,
-      currency: 'NGN',
-      payment_method: paymentMethod,
-      payment_reference: paymentReference,
-      status: 'pending',
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-export async function updateDepositStatus(depositId: string, status: 'completed' | 'failed') {
-  // Use regular client for updates - RLS will handle permissions
-  const { data, error } = await supabase
-    .from('deposits')
-    .update({ status })
-    .eq('id', depositId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error updating deposit status:', error);
-    throw error;
-  }
-
-  // If deposit is completed, update wallet balance
-  if (status === 'completed') {
-    const { data: deposit } = await supabase
-      .from('deposits')
-      .select('user_id, amount_cents')
-      .eq('id', depositId)
-      .single();
-
-    if (deposit) {
-      // Check if wallet exists
-      const { data: wallet } = await supabase
-        .from('wallets')
-        .select('balance_cents')
-        .eq('user_id', deposit.user_id)
-        .single();
-
-      if (wallet) {
-        // Update existing wallet
-        await supabase
-          .from('wallets')
-          .update({ balance_cents: wallet.balance_cents + deposit.amount_cents })
-          .eq('user_id', deposit.user_id);
-      } else {
-        // Create new wallet
-        await supabase
-          .from('wallets')
-          .insert({
-            user_id: deposit.user_id,
-            balance_cents: deposit.amount_cents,
-            currency: 'NGN',
-          });
-      }
-
-      // Also update profile wallet_balance
-      await supabase
-        .from('profiles')
-        .update({ wallet_balance_cents: (wallet?.balance_cents || 0) + deposit.amount_cents })
-        .eq('id', deposit.user_id);
-    }
-  }
-
-  return data;
-}
-
-export async function initializeWallet(userId: string) {
-  const { data, error } = await supabase
-    .from('wallets')
-    .insert({
-      user_id: userId,
-      balance_cents: 0,
-      currency: 'NGN',
-    })
-    .select()
-    .single();
-
-  if (error && error.code !== '23505') {
-    // 23505 means unique constraint violation - wallet already exists
-    const { data: existingWallet } = await supabase
-      .from('wallets')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-    return existingWallet;
-  }
-
-  return data;
-}
-
-export async function completeDepositById(depositId: string) {
-  console.log('Looking for deposit with ID:', depositId);
-
-  const { data, error } = await supabase
-    .from('deposits')
-    .select('*')
-    .eq('id', depositId)
-    .single();
-
-  if (error) {
-    console.error('Error finding deposit by ID:', error);
-    throw new Error(`Deposit not found: ${error.message}`);
-  }
-
-  if (!data) {
-    console.error('No deposit found with ID:', depositId);
-    throw new Error('Deposit not found');
-  }
-
-  console.log('Found deposit:', data);
-
-  if (data.status === 'completed') {
-    return data; // Already completed
-  }
-
-  return await updateDepositStatus(data.id, 'completed');
-}
-
-export async function completeDepositByReference(paymentReference: string) {
-  // Try exact match first
-  const { data, error } = await supabase
-    .from('deposits')
-    .select('*')
-    .eq('payment_reference', paymentReference)
-    .single();
-
-  if (!error && data) {
-    if (data.status === 'completed') {
-      return data; // Already completed
-    }
-    return await updateDepositStatus(data.id, 'completed');
-  }
-
-  // If exact match fails, try to find by starting with the reference
-  // (Paystack might append a timestamp or other data)
-  const { data: partialData, error: partialError } = await supabase
-    .from('deposits')
-    .select('*')
-    .ilike('payment_reference', `${paymentReference}%`)
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
-
-  if (partialError || !partialData) {
-    console.error('Deposit not found with reference:', paymentReference);
-    throw new Error('Deposit not found');
-  }
-
-  if (partialData.status === 'completed') {
-    return partialData;
-  }
-
-  return await updateDepositStatus(partialData.id, 'completed');
+/** Admin only: approve or reject a deposit through the secure server route. */
+export async function updateDepositStatus(depositId: string, status: "completed" | "failed") {
+  const { data: auth } = await supabase.auth.getSession();
+  const res = await fetch("/api/admin/deposits", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(auth.session ? { Authorization: `Bearer ${auth.session.access_token}` } : {}),
+    },
+    body: JSON.stringify({ depositId, action: status === "completed" ? "approve" : "reject" }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || !json.success) throw new Error(json.error || "Could not update deposit");
+  return json;
 }
 
 export async function getAllDeposits() {

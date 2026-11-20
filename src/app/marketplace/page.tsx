@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { ShoppingCart, Shield, Sparkles, MessageCircle, Plus, ChevronRight, Globe, Users, Star, Check, X } from "lucide-react";
-import { getMarketplaceAccounts, createPurchase } from "@/lib/supabase/queries";
+import { getMarketplaceAccounts } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/client";
-import { PaymentMethod } from "@/components/payment/paystack-payment";
+import { CheckoutModal } from "@/components/payment/checkout-modal";
 
 const supabase = createClient();
 
@@ -108,7 +108,7 @@ export default function MarketplacePage() {
 
   const handlePurchase = (account: any) => {
     if (!user) {
-      alert('Please login to purchase');
+      window.location.href = '/login';
       return;
     }
 
@@ -116,64 +116,8 @@ export default function MarketplacePage() {
     setShowPayment(true);
   };
 
-  const handlePaymentSuccess = async (reference: string, method: 'ercas' | 'paystack' | 'wallet') => {
-    setProcessing(true);
-    try {
-      await createPurchase(user.id, selectedAccount.id, method, reference);
-      alert('Purchase successful! Your account credentials are now available in your dashboard.');
-      setAccounts(accounts.filter(a => a.id !== selectedAccount.id));
-      setShowPayment(false);
-      setSelectedAccount(null);
-    } catch (error) {
-      console.error('Error completing purchase:', error);
-      alert('Failed to complete purchase');
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const handleWalletPurchase = async () => {
-    if (!user) {
-      alert('Please login to purchase');
-      return;
-    }
-
-    setProcessing(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        alert('Please login to purchase');
-        return;
-      }
-
-      const response = await fetch('/api/purchase-from-wallet', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          accountId: selectedAccount.id,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert('Purchase successful! Your account credentials are now available in your dashboard.');
-        setAccounts(accounts.filter(a => a.id !== selectedAccount.id));
-        setShowPayment(false);
-        setSelectedAccount(null);
-      } else {
-        alert(result.error || 'Purchase failed');
-      }
-    } catch (error) {
-      console.error('Error completing wallet purchase:', error);
-      alert('Failed to complete purchase');
-    } finally {
-      setProcessing(false);
-    }
+  const handlePurchased = (accountId: string) => {
+    setAccounts((current) => current.filter((a) => a.id !== accountId));
   };
 
   const handlePaymentCancel = () => {
@@ -190,9 +134,17 @@ export default function MarketplacePage() {
 
     setSubmitting(true);
     try {
-      // Here you would implement the actual account listing logic
-      // For now, we'll just show a success message
-      alert('Account listing submitted successfully! Your account will be reviewed and listed once approved.');
+      const res = await fetch('/api/listings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sellerForm),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok || !result.success) {
+        alert(result.error || 'Failed to submit listing');
+        return;
+      }
+      alert('Listing submitted! Our team will review it and publish it within 24 hours.');
       setSellerForm({
         platform: "",
         username: "",
@@ -249,13 +201,13 @@ export default function MarketplacePage() {
           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
             currentStep >= step 
               ? 'bg-blue-600 text-white' 
-              : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+              : 'bg-slate-200 text-slate-500'
           }`}>
             {currentStep > step ? <Check size={14} /> : step}
           </div>
           {step < 3 && (
             <div className={`w-12 h-0.5 transition-all ${
-              currentStep > step ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'
+              currentStep > step ? 'bg-blue-600' : 'bg-slate-200'
             }`} />
           )}
         </div>
@@ -285,9 +237,10 @@ export default function MarketplacePage() {
               href="https://wa.link/tr16oc"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg"
+              className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg text-white text-xs font-medium"
             >
               <MessageCircle size={16} className="text-white" />
+              <span>Customer Service</span>
             </a>
           </div>
           <p className="text-xs text-slate-500">Buy and sell verified social media accounts</p>
@@ -300,15 +253,15 @@ export default function MarketplacePage() {
           transition={{ delay: 0.05 }}
           className="relative"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-          <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-1 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:to-blue-600/10" />
+          <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-1 border-2 border-blue-600/20 shadow-sm">
             <div className="flex gap-1">
               <button
                 onClick={() => { setMode("buy"); setStep(1); }}
                 className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   mode === "buy"
                     ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
+                    : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 Buy Accounts
@@ -318,7 +271,7 @@ export default function MarketplacePage() {
                 className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   mode === "sell"
                     ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
+                    : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 Sell Accounts
@@ -340,11 +293,11 @@ export default function MarketplacePage() {
                 transition={{ delay: 0.1 }}
                 className="relative"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-                <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:to-blue-600/10" />
+                <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 shadow-sm">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">1</div>
-                    <h2 className="text-sm font-bold text-slate-900 dark:text-white">Choose Platform</h2>
+                    <h2 className="text-sm font-bold text-slate-900">Choose Platform</h2>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {platforms.map((platform) => (
@@ -353,12 +306,12 @@ export default function MarketplacePage() {
                         onClick={() => { setSelectedPlatform(platform.id); setStep(2); }}
                         className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
                           selectedPlatform === platform.id
-                            ? 'border-blue-600 bg-blue-50 dark:border-blue-500 dark:bg-blue-900/30'
-                            : 'border-slate-200 hover:border-blue-600/50 dark:border-slate-700 dark:hover:border-blue-500/50'
+                            ? 'border-blue-600 bg-blue-50'
+                            : 'border-slate-200 hover:border-blue-600/50'
                         }`}
                       >
                         <span className="text-2xl">{platform.icon}</span>
-                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{platform.name}</span>
+                        <span className="text-xs font-medium text-slate-700">{platform.name}</span>
                       </button>
                     ))}
                   </div>
@@ -377,7 +330,7 @@ export default function MarketplacePage() {
                 {/* Back Button */}
                 <button
                   onClick={() => setStep(1)}
-                  className="flex items-center gap-2 text-xs text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+                  className="flex items-center gap-2 text-xs text-slate-600 hover:text-blue-600 dark:hover:text-blue-400"
                 >
                   <ChevronRight size={14} className="rotate-180" />
                   Back to platforms
@@ -389,11 +342,11 @@ export default function MarketplacePage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:to-blue-600/10" />
+                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 shadow-sm">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">2</div>
-                      <h2 className="text-sm font-bold text-slate-900 dark:text-white">Account Type</h2>
+                      <h2 className="text-sm font-bold text-slate-900">Account Type</h2>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {accountTypes.map((type) => (
@@ -403,7 +356,7 @@ export default function MarketplacePage() {
                           className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                             selectedAccountType === type.id
                               ? 'bg-blue-600 text-white'
-                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                           }`}
                         >
                           {type.name}
@@ -420,11 +373,11 @@ export default function MarketplacePage() {
                   transition={{ delay: 0.05 }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:to-blue-600/10" />
+                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 shadow-sm">
                     <div className="flex items-center gap-2 mb-3">
                       <Globe size={14} className="text-blue-600 dark:text-blue-400" />
-                      <h2 className="text-sm font-bold text-slate-900 dark:text-white">Country</h2>
+                      <h2 className="text-sm font-bold text-slate-900">Country</h2>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {countries.map((country) => (
@@ -434,7 +387,7 @@ export default function MarketplacePage() {
                           className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                             selectedCountry === country.id
                               ? 'bg-blue-600 text-white'
-                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                           }`}
                         >
                           {country.name}
@@ -451,11 +404,11 @@ export default function MarketplacePage() {
                   transition={{ delay: 0.1 }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:to-blue-600/10" />
+                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 shadow-sm">
                     <div className="flex items-center gap-2 mb-3">
                       <Users size={14} className="text-blue-600 dark:text-blue-400" />
-                      <h2 className="text-sm font-bold text-slate-900 dark:text-white">Follower Count</h2>
+                      <h2 className="text-sm font-bold text-slate-900">Follower Count</h2>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {followerRanges.map((range) => (
@@ -465,7 +418,7 @@ export default function MarketplacePage() {
                           className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                             selectedFollowerRange === range.id
                               ? 'bg-blue-600 text-white'
-                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                           }`}
                         >
                           {range.name}
@@ -500,7 +453,7 @@ export default function MarketplacePage() {
                 {/* Back Button */}
                 <button
                   onClick={() => setStep(2)}
-                  className="flex items-center gap-2 text-xs text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+                  className="flex items-center gap-2 text-xs text-slate-600 hover:text-blue-600 dark:hover:text-blue-400"
                 >
                   <ChevronRight size={14} className="rotate-180" />
                   Back to filters
@@ -513,7 +466,7 @@ export default function MarketplacePage() {
                   className="flex flex-wrap gap-2"
                 >
                   {selectedPlatform !== "all" && (
-                    <div className="px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium dark:bg-blue-900/30 dark:text-blue-400">
+                    <div className="px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium dark:text-blue-400">
                       {platforms.find(p => p.id === selectedPlatform)?.name}
                       <button onClick={() => setSelectedPlatform("all")} className="ml-2 hover:text-blue-900 dark:hover:text-blue-300">
                         <X size={12} />
@@ -521,7 +474,7 @@ export default function MarketplacePage() {
                     </div>
                   )}
                   {selectedAccountType !== "all" && (
-                    <div className="px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium dark:bg-blue-900/30 dark:text-blue-400">
+                    <div className="px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium dark:text-blue-400">
                       {accountTypes.find(t => t.id === selectedAccountType)?.name}
                       <button onClick={() => setSelectedAccountType("all")} className="ml-2 hover:text-blue-900 dark:hover:text-blue-300">
                         <X size={12} />
@@ -529,7 +482,7 @@ export default function MarketplacePage() {
                     </div>
                   )}
                   {selectedCountry !== "all" && (
-                    <div className="px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium dark:bg-blue-900/30 dark:text-blue-400">
+                    <div className="px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium dark:text-blue-400">
                       {countries.find(c => c.id === selectedCountry)?.name}
                       <button onClick={() => setSelectedCountry("all")} className="ml-2 hover:text-blue-900 dark:hover:text-blue-300">
                         <X size={12} />
@@ -537,7 +490,7 @@ export default function MarketplacePage() {
                     </div>
                   )}
                   {selectedFollowerRange !== "all" && (
-                    <div className="px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium dark:bg-blue-900/30 dark:text-blue-400">
+                    <div className="px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium dark:text-blue-400">
                       {followerRanges.find(f => f.id === selectedFollowerRange)?.name}
                       <button onClick={() => setSelectedFollowerRange("all")} className="ml-2 hover:text-blue-900 dark:hover:text-blue-300">
                         <X size={12} />
@@ -561,8 +514,8 @@ export default function MarketplacePage() {
                       transition={{ delay: 0.1 + index * 0.02 }}
                       className="relative"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-                      <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:to-blue-600/10" />
+                      <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 shadow-sm">
                         {/* Platform Logo */}
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-600 flex items-center justify-center text-2xl mb-3">
                           {platformIcons[account.platform] || "🌐"}
@@ -570,21 +523,21 @@ export default function MarketplacePage() {
 
                         {/* Account Details */}
                         <div className="mb-3">
-                          <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">{account.username}</h3>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{account.email}</p>
+                          <h3 className="text-sm font-bold text-slate-900 truncate">{account.username}</h3>
+                          {account.email_hint && <p className="text-xs text-slate-500 truncate">{account.email_hint}</p>}
                         </div>
 
                         {/* Stats */}
                         <div className="grid grid-cols-2 gap-2 mb-3">
                           <div className="flex items-center gap-1">
                             <Users size={12} className="text-slate-400" />
-                            <span className="text-xs text-slate-600 dark:text-slate-400">
+                            <span className="text-xs text-slate-600">
                               {(account.followers_count || 0).toLocaleString()}
                             </span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Globe size={12} className="text-slate-400" />
-                            <span className="text-xs text-slate-600 dark:text-slate-400">
+                            <span className="text-xs text-slate-600">
                               {account.country || 'N/A'}
                             </span>
                           </div>
@@ -593,12 +546,12 @@ export default function MarketplacePage() {
                         {/* Verification Status */}
                         <div className="flex items-center gap-1 mb-3">
                           {account.verified ? (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-medium dark:bg-green-900/30 dark:text-green-400">
+                            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-[11px] font-medium dark:text-green-400">
                               <Check size={10} />
                               Verified
                             </div>
                           ) : (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-medium dark:bg-slate-700 dark:text-slate-400">
+                            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-medium">
                               Unverified
                             </div>
                           )}
@@ -606,8 +559,8 @@ export default function MarketplacePage() {
 
                         {/* Price */}
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-xs text-slate-500 dark:text-slate-400">Price:</span>
-                          <span className="text-sm font-bold text-slate-900 dark:text-white">₦{(account.price_cents / 100).toLocaleString()}</span>
+                          <span className="text-xs text-slate-500">Price:</span>
+                          <span className="text-sm font-bold text-slate-900">₦{(account.price_cents / 100).toLocaleString()}</span>
                         </div>
 
                         {/* Security Badge */}
@@ -639,13 +592,13 @@ export default function MarketplacePage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="relative"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-                    <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-6 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm text-center">
-                      <div className="p-3 bg-blue-50 rounded-full w-fit mx-auto mb-3 dark:bg-blue-900/30">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:to-blue-600/10" />
+                    <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-6 border-2 border-blue-600/20 shadow-sm text-center">
+                      <div className="p-3 bg-blue-50 rounded-full w-fit mx-auto mb-3">
                         <ShoppingCart size={24} className="text-blue-600 dark:text-blue-400" />
                       </div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">No accounts found</p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Try adjusting your filters</p>
+                      <p className="text-sm text-slate-500">No accounts found</p>
+                      <p className="text-xs text-slate-400 mt-1">Try adjusting your filters</p>
                     </div>
                   </motion.div>
                 )}
@@ -660,24 +613,24 @@ export default function MarketplacePage() {
             transition={{ delay: 0.1 }}
             className="relative"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-            <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 dark:bg-slate-800/80 dark:border-blue-500/30 shadow-sm">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:to-blue-600/10" />
+            <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-4 border-2 border-blue-600/20 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <div className="p-1.5 bg-gradient-to-br from-blue-600 to-blue-600 rounded-lg">
                   <Plus size={14} className="text-white" />
                 </div>
-                <h2 className="text-sm font-bold text-slate-900 dark:text-white">List Your Account</h2>
+                <h2 className="text-sm font-bold text-slate-900">List Your Account</h2>
               </div>
 
               <form onSubmit={handleSellerSubmit} className="space-y-3">
                 {/* Platform */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Platform</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Platform</label>
                   <select
                     value={sellerForm.platform}
                     onChange={(e) => setSellerForm({...sellerForm, platform: e.target.value})}
                     required
-                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all dark:bg-slate-700/50 dark:text-white dark:border-blue-500/30"
+                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                   >
                     <option value="">Select platform</option>
                     <option value="facebook">Facebook</option>
@@ -692,76 +645,76 @@ export default function MarketplacePage() {
 
                 {/* Username */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Username</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Username</label>
                   <input
                     type="text"
                     value={sellerForm.username}
                     onChange={(e) => setSellerForm({...sellerForm, username: e.target.value})}
                     required
                     placeholder="Account username"
-                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all dark:bg-slate-700/50 dark:text-white dark:border-blue-500/30"
+                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                   />
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Email</label>
                   <input
                     type="email"
                     value={sellerForm.email}
                     onChange={(e) => setSellerForm({...sellerForm, email: e.target.value})}
                     required
                     placeholder="Account email"
-                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all dark:bg-slate-700/50 dark:text-white dark:border-blue-500/30"
+                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                   />
                 </div>
 
                 {/* Password */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Password</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Password</label>
                   <input
                     type="password"
                     value={sellerForm.password}
                     onChange={(e) => setSellerForm({...sellerForm, password: e.target.value})}
                     required
                     placeholder="Account password"
-                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all dark:bg-slate-700/50 dark:text-white dark:border-blue-500/30"
+                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                   />
                 </div>
 
                 {/* Recovery Email */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Recovery Email (Optional)</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Recovery Email (Optional)</label>
                   <input
                     type="email"
                     value={sellerForm.recoveryEmail}
                     onChange={(e) => setSellerForm({...sellerForm, recoveryEmail: e.target.value})}
                     placeholder="Recovery email"
-                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all dark:bg-slate-700/50 dark:text-white dark:border-blue-500/30"
+                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                   />
                 </div>
 
                 {/* Followers Count */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Follower Count</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Follower Count</label>
                   <input
                     type="number"
                     value={sellerForm.followersCount}
                     onChange={(e) => setSellerForm({...sellerForm, followersCount: e.target.value})}
                     required
                     placeholder="Number of followers"
-                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all dark:bg-slate-700/50 dark:text-white dark:border-blue-500/30"
+                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                   />
                 </div>
 
                 {/* Account Type */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Account Type</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Account Type</label>
                   <select
                     value={sellerForm.accountType}
                     onChange={(e) => setSellerForm({...sellerForm, accountType: e.target.value})}
                     required
-                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all dark:bg-slate-700/50 dark:text-white dark:border-blue-500/30"
+                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                   >
                     <option value="">Select type</option>
                     <option value="personal">Personal</option>
@@ -773,12 +726,12 @@ export default function MarketplacePage() {
 
                 {/* Country */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Country</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Country</label>
                   <select
                     value={sellerForm.country}
                     onChange={(e) => setSellerForm({...sellerForm, country: e.target.value})}
                     required
-                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all dark:bg-slate-700/50 dark:text-white dark:border-blue-500/30"
+                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                   >
                     <option value="">Select country</option>
                     <option value="us">United States</option>
@@ -798,33 +751,33 @@ export default function MarketplacePage() {
                     id="verified"
                     checked={sellerForm.verified}
                     onChange={(e) => setSellerForm({...sellerForm, verified: e.target.checked})}
-                    className="w-4 h-4 rounded border-2 border-blue-600/20 dark:border-blue-500/30"
+                    className="w-4 h-4 rounded border-2 border-blue-600/20"
                   />
-                  <label htmlFor="verified" className="text-xs font-medium text-slate-700 dark:text-slate-300">Verified Account</label>
+                  <label htmlFor="verified" className="text-xs font-medium text-slate-700">Verified Account</label>
                 </div>
 
                 {/* Price */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Price (₦)</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Price (₦)</label>
                   <input
                     type="number"
                     value={sellerForm.price}
                     onChange={(e) => setSellerForm({...sellerForm, price: e.target.value})}
                     required
                     placeholder="Listing price"
-                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all dark:bg-slate-700/50 dark:text-white dark:border-blue-500/30"
+                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
                   />
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Description</label>
                   <textarea
                     value={sellerForm.description}
                     onChange={(e) => setSellerForm({...sellerForm, description: e.target.value})}
                     placeholder="Account description and features"
                     rows={3}
-                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all resize-none dark:bg-slate-700/50 dark:text-white dark:border-blue-500/30"
+                    className="w-full px-3 py-2 bg-white/50 backdrop-blur border-2 border-blue-600/20 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all resize-none"
                   />
                 </div>
 
@@ -847,14 +800,10 @@ export default function MarketplacePage() {
 
       {/* Payment Modal */}
       {showPayment && selectedAccount && user && (
-        <PaymentMethod
-          amount={selectedAccount.price_cents / 100}
-          email={user.email}
-          accountId={selectedAccount.id}
-          onSuccess={handlePaymentSuccess}
-          onWalletPurchase={handleWalletPurchase}
+        <CheckoutModal
+          account={selectedAccount}
+          onPurchased={handlePurchased}
           onClose={handlePaymentCancel}
-          onCancel={handlePaymentCancel}
         />
       )}
     </DashboardLayout>

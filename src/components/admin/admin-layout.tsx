@@ -4,17 +4,9 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Globe,
-  Users,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-  Clock,
-  Wallet,
-} from "lucide-react";
+import { LayoutDashboard, Globe, Users, Settings, LogOut, Menu, X, Clock, Wallet, Store } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -25,37 +17,18 @@ const navigation = [
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
-// Design tokens — kept local so the palette is easy to retune in one place.
-const tokens = {
-  ink: "#1e65f3",
-  inkLine: "#1e65f3",
-  paper: "#F5F7FB",
-  line: "#DCE5F2",
-  accent: "#4C9BFF",
-  accentSoft: "#DCEAFF",
-  text: "#14161A",
-  textMuted: "#8A8D93",
-};
-
-const SIDEBAR_WIDTH = 288; // px, matches w-72
-
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const activeItem = navigation.find((item) => item.href === pathname);
 
+  const logout = async () => {
+    await createClient().auth.signOut();
+    window.location.href = "/login";
+  };
+
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        background: tokens.paper,
-        fontFamily: "'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif",
-      }}
-    >
-      {/*
-        Mobile-only backdrop. `lg:hidden` fully removes it from the tree on
-        desktop so it can never intercept clicks or affect layout there.
-      */}
+    <div className="min-h-screen bg-canvas">
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
@@ -63,73 +36,55 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 z-40 lg:hidden"
-            style={{ background: "rgba(20,22,26,0.55)" }}
+            className="fixed inset-0 z-40 bg-ink-950/60 backdrop-blur-sm lg:hidden"
           />
         )}
       </AnimatePresence>
 
-      {/*
-        Sidebar is ALWAYS position:fixed (no lg:static swap) and its open/closed
-        state is expressed purely with Tailwind's `translate-x-*` classes, not
-        an animated inline style. That way `lg:translate-x-0` is free to win
-        the cascade at desktop widths no matter what `sidebarOpen` is set to.
-      */}
       <aside
-        className={`fixed left-0 top-0 z-50 h-full w-[min(86vw,288px)] transition-transform duration-300 ease-in-out
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:translate-x-0`}
-        style={{ background: tokens.ink }}
+        className={`fixed left-0 top-0 z-50 h-full w-[min(86vw,288px)] bg-[#0a2342] text-white transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
-        <div className="flex flex-col h-full">
-          {/* Wordmark */}
-          <div
-            className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5"
-            style={{ borderBottom: `1px solid ${tokens.inkLine}` }}
-          >
-            <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="TrustedAccounts" className="h-8 w-8 rounded-lg" />
-              <span className="text-base font-extrabold tracking-tight" style={{ color: tokens.paper }}>
-                Admin
+        <div className="flex h-full flex-col">
+          <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+            <Link href="/admin" className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl bg-glass">
+                <img src="/logo.png" alt="" className="h-8 w-8 object-contain" />
               </span>
-            </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden"
-              style={{ color: tokens.textMuted }}
-              aria-label="Close menu"
-            >
+              <span>
+                <strong className="block text-base font-extrabold tracking-tight">TrustedAccounts</strong>
+                <small className="block text-[11px] font-medium text-white/60">Admin console</small>
+              </span>
+            </Link>
+            <button onClick={() => setSidebarOpen(false)} className="rounded-lg p-1.5 text-white/70 hover:bg-glass/10 lg:hidden" aria-label="Close menu">
               <X size={20} />
             </button>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 px-3 py-5">
+          <nav className="flex-1 overflow-y-auto px-3 py-5" aria-label="Admin">
             <ul className="space-y-1">
               {navigation.map((item) => {
                 const isActive = pathname === item.href;
                 const Icon = item.icon;
-
                 return (
-                  <li key={item.name} className="relative">
+                  <li key={item.name}>
                     <Link
                       href={item.href}
                       onClick={() => setSidebarOpen(false)}
-                      className="relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors duration-150"
-                      style={{
-                        color: isActive ? tokens.paper : tokens.textMuted,
-                      }}
+                      aria-current={isActive ? "page" : undefined}
+                      className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition-colors ${
+                        isActive ? "bg-glass/10 text-white" : "text-white/65 hover:bg-glass/10 hover:text-white"
+                      }`}
                     >
                       {isActive && (
-                        <motion.div
-                          layoutId="active-rail"
-                          className="absolute left-0 top-0 h-full"
-                          style={{ width: 3, background: tokens.accent }}
-                          transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                        <motion.span
+                          layoutId="admin-active-rail"
+                          className="absolute left-0 top-2 h-[calc(100%-16px)] w-[3px] rounded-full bg-blue-400"
                         />
                       )}
                       <Icon size={18} strokeWidth={1.75} />
-                      <span className="text-xs font-bold">{item.name}</span>
+                      {item.name}
                     </Link>
                   </li>
                 );
@@ -137,64 +92,40 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </ul>
           </nav>
 
-          {/* Logout */}
-          <div className="px-3 pb-5">
+          <div className="space-y-1 border-t border-white/10 px-3 py-4">
+            <Link href="/marketplace" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-white/65 hover:bg-glass/10 hover:text-white">
+              <Store size={18} strokeWidth={1.75} /> View marketplace
+            </Link>
             <button
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-bold transition-colors duration-150 hover:bg-white/10 hover:text-white"
-              style={{ color: tokens.textMuted }}
+              onClick={logout}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-white/65 transition-colors hover:bg-glass/10 hover:text-white"
             >
-              <LogOut size={18} strokeWidth={1.75} />
-              <span className="text-sm font-medium">Log out</span>
+              <LogOut size={18} strokeWidth={1.75} /> Log out
             </button>
           </div>
         </div>
       </aside>
 
-      {/*
-        Content column. The `lg:ml-72` offset always matches a sidebar that is
-        always physically present (fixed + translate-x-0) at that breakpoint,
-        so there's no scenario where the margin exists but the sidebar doesn't
-        (or vice versa) — that mismatch was what pushed content off to the
-        bottom-right before.
-      */}
-      <div className="min-h-screen flex flex-col lg:ml-72">
-        {/* Top bar */}
-        <header
-          className="sticky top-0 z-30 px-3 py-3 sm:px-5 sm:py-4"
-          style={{ background: tokens.paper, borderBottom: `1px solid ${tokens.line}` }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+      <div className="flex min-h-screen flex-col lg:ml-72">
+        <header className="sticky top-0 z-30 border-b border-slate-200 bg-canvas/85 px-3 py-3 backdrop-blur-xl sm:px-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden"
-                style={{ color: tokens.text }}
+                className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 lg:hidden"
                 aria-label="Open menu"
               >
-                <Menu size={22} />
+                <Menu size={18} />
               </button>
-              <h2 className="text-base font-extrabold tracking-tight" style={{ color: tokens.text }}>
-                {activeItem?.name ?? "Admin"}
-              </h2>
+              <h1 className="text-base font-extrabold tracking-tight text-slate-900">{activeItem?.name ?? "Admin"}</h1>
             </div>
-
-            <div className="flex items-center gap-3">
-              <div
-                className="flex items-center justify-center w-8 h-8 text-xs font-medium"
-                style={{
-                  background: tokens.accentSoft,
-                  color: tokens.accent,
-                  borderRadius: 4,
-                  fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
-                }}
-              >
-                A
-              </div>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-blue-100 text-xs font-bold text-blue-700">A</span>
             </div>
           </div>
         </header>
 
-        {/* Page content */}
         <main className="flex-1 px-3 py-5 sm:px-5 sm:py-7">{children}</main>
       </div>
     </div>

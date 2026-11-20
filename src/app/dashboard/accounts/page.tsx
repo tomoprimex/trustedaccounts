@@ -79,7 +79,7 @@ export default function AccountsPage() {
             </h1>
           </div>
           <p className="text-xs text-slate-500">View and manage your purchased account credentials</p>
-          <p className="text-[10px] text-amber-600 mt-1">Only completed and delivered orders appear here</p>
+          <p className="text-[11px] text-amber-600 mt-1">Only completed and delivered orders appear here</p>
         </motion.div>
 
         {/* Empty State */}
@@ -87,13 +87,13 @@ export default function AccountsPage() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-white/30 text-center"
+            className="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-slate-200 text-center"
           >
             <div className="p-2 bg-blue-50 rounded-full w-fit mx-auto mb-2">
               <Key size={20} className="text-blue-600" />
             </div>
             <p className="text-xs text-slate-500">No purchased accounts yet</p>
-            <p className="text-[10px] text-slate-400 mt-1">Visit the marketplace to purchase accounts</p>
+            <p className="text-[11px] text-slate-400 mt-1">Visit the marketplace to purchase accounts</p>
           </motion.div>
         ) : (
           <div className="space-y-2">
@@ -109,18 +109,18 @@ export default function AccountsPage() {
                   transition={{ delay: index * 0.03 }}
                   className="relative"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:from-blue-500/10 dark:to-blue-600/10" />
-                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-white/30 shadow-sm dark:bg-slate-800/80 dark:border-slate-700/50">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-blue-600/10 rounded-xl blur-md dark:to-blue-600/10" />
+                  <div className="relative bg-white/80 backdrop-blur-xl rounded-xl p-2.5 border border-slate-200 shadow-sm">
                     {/* Card Header */}
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-600 flex items-center justify-center text-sm flex-shrink-0">
                         {platformIcons[account.platform] || "🌐"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-[11px] font-bold text-slate-900 truncate dark:text-white">{account.username}</h3>
-                        <p className="text-[9px] text-slate-500 truncate dark:text-slate-400">{account.email}</p>
+                        <h3 className="text-[11px] font-bold text-slate-900 truncate">{account.username}</h3>
+                        <p className="text-[11px] text-slate-500 truncate">{account.email}</p>
                       </div>
-                      <div className="px-1.5 py-0.5 rounded-md bg-gradient-to-r from-blue-600 to-blue-600 text-white text-[8px] font-bold flex-shrink-0 capitalize">
+                      <div className="px-1.5 py-0.5 rounded-md bg-gradient-to-r from-blue-600 to-blue-600 text-white text-[10px] font-bold flex-shrink-0 capitalize">
                         {account.platform}
                       </div>
                     </div>
@@ -129,12 +129,12 @@ export default function AccountsPage() {
                     <div className="flex items-center justify-between mb-2">
                       <button
                         onClick={() => toggleVisibility(purchase.id)}
-                        className="flex items-center gap-1 text-[10px] text-blue-600 font-medium"
+                        className="flex items-center gap-1 text-[11px] text-blue-600 font-medium"
                       >
                         {isVisible ? <EyeOff size={10} /> : <Eye size={10} />}
                         {isVisible ? 'Hide' : 'Show'} Credentials
                       </button>
-                      <span className="text-[8px] text-slate-400">
+                      <span className="text-[10px] text-slate-400">
                         {new Date(purchase.created_at).toLocaleDateString()}
                       </span>
                     </div>
@@ -147,9 +147,9 @@ export default function AccountsPage() {
                         className="space-y-1.5 pt-2 border-t border-slate-100"
                       >
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[8px] text-slate-500 w-8">Email:</span>
+                          <span className="text-[10px] text-slate-500 w-8">Email:</span>
                           <div className="flex-1 flex items-center gap-1 min-w-0">
-                            <span className="text-[9px] font-medium text-slate-800 bg-slate-50 px-1.5 py-0.5 rounded truncate flex-1">{account.email}</span>
+                            <span className="text-[11px] font-medium text-slate-800 bg-slate-50 px-1.5 py-0.5 rounded truncate flex-1">{account.email}</span>
                             <button
                               onClick={() => copyToClipboard(account.email)}
                               className="p-0.5 hover:bg-slate-100 rounded transition-colors flex-shrink-0"
@@ -161,9 +161,9 @@ export default function AccountsPage() {
                         
                         {account.password && (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[8px] text-slate-500 w-8">Pass:</span>
+                            <span className="text-[10px] text-slate-500 w-8">Pass:</span>
                             <div className="flex-1 flex items-center gap-1 min-w-0">
-                              <span className="text-[9px] font-medium text-slate-800 bg-slate-50 px-1.5 py-0.5 rounded truncate flex-1">{account.password}</span>
+                              <span className="text-[11px] font-medium text-slate-800 bg-slate-50 px-1.5 py-0.5 rounded truncate flex-1">{account.password}</span>
                               <button
                                 onClick={() => copyToClipboard(account.password)}
                                 className="p-0.5 hover:bg-slate-100 rounded transition-colors flex-shrink-0"
@@ -176,9 +176,9 @@ export default function AccountsPage() {
                         
                         {account.recovery_phone && (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[8px] text-slate-500 w-8">Phone:</span>
+                            <span className="text-[10px] text-slate-500 w-8">Phone:</span>
                             <div className="flex-1 flex items-center gap-1 min-w-0">
-                              <span className="text-[9px] font-medium text-slate-800 bg-slate-50 px-1.5 py-0.5 rounded truncate flex-1">{account.recovery_phone}</span>
+                              <span className="text-[11px] font-medium text-slate-800 bg-slate-50 px-1.5 py-0.5 rounded truncate flex-1">{account.recovery_phone}</span>
                               <button
                                 onClick={() => copyToClipboard(account.recovery_phone)}
                                 className="p-0.5 hover:bg-slate-100 rounded transition-colors flex-shrink-0"
@@ -191,9 +191,9 @@ export default function AccountsPage() {
                         
                         {account.two_factor_secret && (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[8px] text-slate-500 w-8">2FA:</span>
+                            <span className="text-[10px] text-slate-500 w-8">2FA:</span>
                             <div className="flex-1 flex items-center gap-1 min-w-0">
-                              <span className="text-[9px] font-medium text-slate-800 bg-slate-50 px-1.5 py-0.5 rounded truncate flex-1">{account.two_factor_secret}</span>
+                              <span className="text-[11px] font-medium text-slate-800 bg-slate-50 px-1.5 py-0.5 rounded truncate flex-1">{account.two_factor_secret}</span>
                               <button
                                 onClick={() => copyToClipboard(account.two_factor_secret)}
                                 className="p-0.5 hover:bg-slate-100 rounded transition-colors flex-shrink-0"

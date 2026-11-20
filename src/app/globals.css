@@ -1,9 +1,12 @@
+@import "./theme.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 html {
   height: 100%;
+  -webkit-text-size-adjust: 100%;
 }
 
 html,
@@ -14,16 +17,12 @@ body {
 
 body {
   min-height: 100%;
-  background: #f5f7fb;
-  color: #10233f;
+  background: rgb(var(--canvas));
+  color: rgb(var(--slate-900));
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-.dark body {
-  background: #0f172a;
-  color: #f1f5f9;
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
 * {
@@ -52,128 +51,152 @@ textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
 :focus-visible {
-  outline: 3px solid rgba(30, 101, 243, 0.35);
+  outline: 2px solid rgb(var(--blue-500));
   outline-offset: 2px;
 }
 
 ::selection {
-  background: #bfdbfe;
-  color: #0a2342;
+  background: rgb(var(--blue-200));
+  color: rgb(var(--slate-900));
+}
+
+/* Native form controls follow the theme (date pickers, selects, scrollbars). */
+input,
+select,
+textarea {
+  color-scheme: inherit;
+}
+
+select option {
+  background: rgb(var(--surface));
+  color: rgb(var(--slate-900));
+}
+
+/* Thin themed scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--slate-300)) transparent;
+}
+
+/* Suppress transitions while the theme flips so nothing animates through odd colors. */
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Shadows read as black glow on dark surfaces. */
+.dark .shadow-sm,
+.dark .shadow,
+.dark .shadow-md,
+.dark .shadow-lg,
+.dark .shadow-xl,
+.dark .shadow-2xl {
+  --tw-shadow-color: rgb(0 0 0 / 0.45);
+  --tw-shadow: var(--tw-shadow-colored);
 }
 
 @layer components {
   .app-surface {
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: 0 12px 30px rgba(15, 35, 65, 0.06);
+    border: 1px solid rgb(var(--slate-200));
+    border-radius: 16px;
+    background: rgb(var(--surface) / 0.94);
+    box-shadow: 0 1px 2px rgb(15 35 65 / 0.04), 0 12px 30px rgb(15 35 65 / 0.06);
   }
 
   .dark .app-surface {
-    border-color: #334155;
-    background: rgba(30, 41, 59, 0.92);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    background: rgb(var(--surface) / 0.94);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 30px rgb(0 0 0 / 0.25);
   }
 
   .app-page-title {
-    color: #0a2342;
+    color: rgb(var(--slate-900));
     font-size: clamp(1.35rem, 2vw, 1.8rem);
     font-weight: 800;
-    letter-spacing: -0.05em;
-  }
-
-  .dark .app-page-title {
-    color: #f1f5f9;
+    letter-spacing: -0.04em;
   }
 
   .app-page-subtitle {
-    color: #64748b;
-    font-size: 0.78rem;
+    color: rgb(var(--slate-500));
+    font-size: 0.8rem;
     line-height: 1.6;
-  }
-
-  .dark .app-page-subtitle {
-    color: #94a3b8;
   }
 
   .app-input {
     min-height: 40px;
-    border: 1px solid #dbe3ef;
-    border-radius: 9px;
-    background: #fff;
-    color: #10233f;
-    font-size: 0.78rem;
+    border: 1px solid rgb(var(--slate-200));
+    border-radius: 10px;
+    background: rgb(var(--surface));
+    color: rgb(var(--slate-900));
+    font-size: 0.8rem;
     transition: border-color 160ms ease, box-shadow 160ms ease;
   }
 
-  .dark .app-input {
-    border-color: #475569;
-    background: #1e293b;
-    color: #f1f5f9;
+  .app-input::placeholder {
+    color: rgb(var(--slate-400));
   }
 
   .app-input:focus {
-    border-color: #1e65f3;
-    box-shadow: 0 0 0 3px rgba(30, 101, 243, 0.1);
+    border-color: rgb(var(--blue-500));
+    box-shadow: 0 0 0 3px rgb(var(--blue-500) / 0.15);
     outline: none;
   }
 
   .auth-shell label {
-    color: #334155 !important;
+    color: rgb(var(--slate-700)) !important;
   }
 
-  .dark .auth-shell label {
-    color: #cbd5e1 !important;
+  .auth-shell input:not(:focus) {
+    border-color: rgb(var(--slate-200)) !important;
   }
 
   .auth-shell input {
-    border-color: #dbe3ef !important;
-    background: #fff !important;
-    color: #10233f !important;
+    background: rgb(var(--surface)) !important;
+    color: rgb(var(--slate-900)) !important;
   }
 
-  .dark .auth-shell input {
-    border-color: #475569 !important;
-    background: #1e293b !important;
-    color: #f1f5f9 !important;
-  }
-
-  .auth-shell input::placeholder {
-    color: #94a3b8 !important;
-  }
-
-  .dark .auth-shell input::placeholder {
-    color: #64748b !important;
-  }
-
-  .auth-shell form svg {
-    color: #94a3b8 !important;
-  }
-
-  .dark .auth-shell form svg {
-    color: #64748b !important;
+  .auth-shell input::placeholder,
+  .auth-shell form .relative > svg {
+    color: rgb(var(--slate-400)) !important;
   }
 
   .auth-shell form button[type="submit"] {
-    background: #0a2342 !important;
+    background: #1e65f3 !important;
     color: #fff !important;
-    box-shadow: 0 10px 24px rgba(10, 35, 66, 0.16) !important;
+    box-shadow: 0 10px 24px rgb(30 101 243 / 0.22) !important;
   }
 
-  .auth-shell form a,
+  .auth-shell form button[type="submit"]:hover {
+    background: #1650d6 !important;
+  }
+
   .auth-shell form p,
   .auth-shell h3 {
-    color: #64748b !important;
+    color: rgb(var(--slate-500)) !important;
   }
 
-  .dark .auth-shell form a,
-  .dark .auth-shell form p,
-  .dark .auth-shell h3 {
-    color: #94a3b8 !important;
+  .auth-shell form a {
+    color: rgb(var(--tx-blue-600)) !important;
   }
 
   .auth-shell form a:hover {
-    color: #1e65f3 !important;
+    text-decoration: underline;
   }
 }

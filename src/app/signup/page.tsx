@@ -1,298 +1,143 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { createClient } from "@/lib/supabase/client";
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2, Check, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { ArrowRight, Check, Loader2, Lock, Mail, User } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { AuthLayout } from "@/components/auth/auth-layout";
+import { AuthField, FormMessage } from "@/components/auth/auth-field";
+
+const rules = [
+  { label: "8+ characters", test: (p: string) => p.length >= 8 },
+  { label: "Lowercase", test: (p: string) => /[a-z]/.test(p) },
+  { label: "Uppercase", test: (p: string) => /[A-Z]/.test(p) },
+  { label: "Number", test: (p: string) => /\d/.test(p) },
+];
 
 export default function SignupPage() {
-  const supabase = createClient();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState<"success" | "error">("error");
-  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  const checkPasswordStrength = (pwd: string) => {
-    let strength = 0;
-    if (pwd.length >= 8) strength += 25;
-    if (pwd.match(/[a-z]/)) strength += 25;
-    if (pwd.match(/[A-Z]/)) strength += 25;
-    if (pwd.match(/[0-9]/)) strength += 25;
-    return strength;
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const pwd = e.target.value;
-    setPassword(pwd);
-    setPasswordStrength(checkPasswordStrength(pwd));
-  };
+  const passed = rules.filter((r) => r.test(password)).length;
+  const strengthColor = ["bg-slate-200", "bg-red-500", "bg-amber-500", "bg-blue-500", "bg-emerald-500"][passed];
 
   async function signUp(e: React.FormEvent) {
     e.preventDefault();
+    setMessage(null);
+
+    if (password !== confirmPassword) return setMessage({ type: "error", text: "Passwords do not match." });
+    if (passed < 3) return setMessage({ type: "error", text: "Please choose a stronger password." });
+
     setIsLoading(true);
-    setMessage("");
-
-    if (password !== confirmPassword) {
-      setMessage("Passwords do not match");
-      setMessageType("error");
-      setIsLoading(false);
-      return;
-    }
-
-    if (passwordStrength < 50) {
-      setMessage("Password is too weak. Please use a stronger password.");
-      setMessageType("error");
-      setIsLoading(false);
-      return;
-    }
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
+    const { data, error } = await createClient().auth.signUp({
+      email: email.trim(),
       password,
       options: {
-        data: {
-          full_name: fullName,
-        },
+        data: { full_name: fullName.trim() },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+    setIsLoading(false);
 
-    if (error) {
-      setMessage(error.message);
-      setMessageType("error");
-      setIsLoading(false);
+    if (error) return setMessage({ type: "error", text: error.message });
+
+    if (data.session) {
+      setMessage({ type: "success", text: "Account created! Taking you to your dashboard…" });
+      window.location.href = "/dashboard";
     } else {
-      if (data.user) {
-        setMessage("Account created successfully!");
-        setMessageType("success");
-        setIsLoading(false);
-        setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 1500);
-      } else {
-        setMessage("Account created! Please sign in.");
-        setMessageType("success");
-        setIsLoading(false);
-      }
+      setMessage({ type: "success", text: `Almost there! We sent a confirmation link to ${email.trim()}. Open it to activate your account.` });
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-xs"
-      >
-        {/* Card */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-blue-600/20 rounded-2xl blur-xl" />
-          <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-white/30 shadow-lg">
-            {/* Header */}
-            <div className="text-center mb-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <div className="p-1.5 bg-gradient-to-br from-blue-600 to-blue-600 rounded-lg">
-                  <Sparkles size={12} className="text-white" />
+    <AuthLayout title="Create your account" subtitle="Buy verified social accounts with instant, secure delivery.">
+      <form onSubmit={signUp} className="space-y-4">
+        <AuthField
+          label="Full name"
+          icon={User}
+          autoComplete="name"
+          placeholder="Ada Okafor"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          required
+        />
+        <AuthField
+          label="Email"
+          icon={Mail}
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <AuthField
+          label="Password"
+          icon={Lock}
+          type="password"
+          autoComplete="new-password"
+          placeholder="Create a password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          hint={
+            password && (
+              <div className="mt-2">
+                <div className="flex gap-1" aria-hidden>
+                  {rules.map((_, i) => (
+                    <span key={i} className={`h-1 flex-1 rounded-full transition-colors ${i < passed ? strengthColor : "bg-slate-200"}`} />
+                  ))}
                 </div>
-                <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
-                  Create Account
-                </h1>
+                <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
+                  {rules.map((r) => {
+                    const ok = r.test(password);
+                    return (
+                      <li key={r.label} className={`flex items-center gap-1.5 text-[11px] ${ok ? "text-emerald-600" : "text-slate-500"}`}>
+                        <Check size={12} className={ok ? "opacity-100" : "opacity-30"} />
+                        {r.label}
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
-              <p className="text-[10px] text-slate-500">Join TrustedAccounts today</p>
-            </div>
+            )
+          }
+        />
+        <AuthField
+          label="Confirm password"
+          icon={Lock}
+          type="password"
+          autoComplete="new-password"
+          placeholder="Repeat your password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          aria-invalid={!!confirmPassword && confirmPassword !== password}
+        />
 
-            {/* Form */}
-            <form onSubmit={signUp} className="space-y-2.5">
-              {/* Full Name Input */}
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <label className="block text-[10px] font-medium text-slate-700 mb-1">Full Name</label>
-                <div className="relative">
-                  <User className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={12} />
-                  <input
-                    type="text"
-                    placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                    className="w-full pl-8 pr-3 py-2 bg-white/50 backdrop-blur border border-white/30 rounded-lg text-[10px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
-                  />
-                </div>
-              </motion.div>
+        {message && <FormMessage type={message.type}>{message.text}</FormMessage>}
 
-              {/* Email Input */}
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15 }}
-              >
-                <label className="block text-[10px] font-medium text-slate-700 mb-1">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={12} />
-                  <input
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="w-full pl-8 pr-3 py-2 bg-white/50 backdrop-blur border border-white/30 rounded-lg text-[10px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
-                  />
-                </div>
-              </motion.div>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold disabled:opacity-60"
+        >
+          {isLoading ? <Loader2 size={16} className="animate-spin" /> : null}
+          {isLoading ? "Creating account…" : "Create account"}
+          {!isLoading && <ArrowRight size={16} />}
+        </button>
 
-              {/* Password Input */}
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <label className="block text-[10px] font-medium text-slate-700 mb-1">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={12} />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={handlePasswordChange}
-                    required
-                    className="w-full pl-8 pr-8 py-2 bg-white/50 backdrop-blur border border-white/30 rounded-lg text-[10px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                  >
-                    {showPassword ? <EyeOff size={10} /> : <Eye size={10} />}
-                  </button>
-                </div>
-                {/* Password Strength */}
-                {password && (
-                  <div className="flex gap-0.5 mt-1">
-                    {[25, 50, 75, 100].map((threshold) => (
-                      <div
-                        key={threshold}
-                        className={`h-0.5 rounded-full flex-1 transition-colors ${
-                          passwordStrength >= threshold
-                            ? threshold === 25
-                              ? "bg-red-500"
-                              : threshold === 50
-                              ? "bg-amber-500"
-                              : threshold === 75
-                              ? "bg-yellow-500"
-                              : "bg-blue-600"
-                            : "bg-slate-200"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-
-              {/* Confirm Password Input */}
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.25 }}
-              >
-                <label className="block text-[10px] font-medium text-slate-700 mb-1">Confirm Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={12} />
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    className="w-full pl-8 pr-8 py-2 bg-white/50 backdrop-blur border border-white/30 rounded-lg text-[10px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                  >
-                    {showConfirmPassword ? <EyeOff size={10} /> : <Eye size={10} />}
-                  </button>
-                </div>
-                {confirmPassword && (
-                  <div className="mt-1 flex items-center gap-1 text-[8px]">
-                    {password === confirmPassword ? (
-                      <span className="text-blue-600 flex items-center gap-0.5">
-                        <Check size={8} /> Match
-                      </span>
-                    ) : (
-                      <span className="text-red-500">No match</span>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-
-              {/* Message */}
-              {message && (
-                <motion.div
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`p-2 rounded-lg text-[9px] ${
-                    messageType === "error" 
-                      ? "bg-red-100 text-red-700 border border-red-200" 
-                      : "bg-blue-100 text-blue-700 border border-blue-200"
-                  }`}
-                >
-                  {message}
-                </motion.div>
-              )}
-
-              {/* Submit Button */}
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-1.5 py-2 bg-gradient-to-r from-blue-600 to-blue-600 text-white rounded-lg text-[10px] font-semibold shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 size={10} className="animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    Create Account
-                    <ArrowRight size={10} />
-                  </>
-                )}
-              </motion.button>
-            </form>
-
-            {/* Sign In Link */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.35 }}
-              className="text-center mt-3"
-            >
-              <p className="text-[9px] text-slate-500">
-                Already have an account?{' '}
-                <Link href="/login" className="text-[9px] font-medium text-blue-600 hover:text-blue-500 transition-colors">
-                  Sign in
-                </Link>
-              </p>
-            </motion.div>
-          </div>
-        </div>
-      </motion.div>
-    </div>
+        <p className="text-center text-sm">
+          Already have an account?{" "}
+          <Link href="/login" className="font-semibold">
+            Sign in
+          </Link>
+        </p>
+      </form>
+    </AuthLayout>
   );
 }

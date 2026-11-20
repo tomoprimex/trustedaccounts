@@ -24,7 +24,7 @@ const platformGradients: Record<string, string> = {
   facebook: "from-blue-500 to-blue-600",
   instagram: "from-purple-500 to-pink-500",
   youtube: "from-red-500 to-red-600",
-  tiktok: "from-black to-gray-800",
+  tiktok: "from-black to-ink-800",
   twitter: "from-sky-500 to-sky-600",
 };
 

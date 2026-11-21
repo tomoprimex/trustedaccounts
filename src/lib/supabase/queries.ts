@@ -1031,12 +1031,9 @@ export async function getWalletBalance(userId: string) {
     .from('wallets')
     .select('balance_cents, currency')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle(); // no wallet row yet = ₦0 (created on first deposit)
 
-  if (error && error.code !== 'PGRST116') {
-    // PGRST116 means no rows found, which is ok
-    throw error;
-  }
+  if (error) throw error;
 
   return data || { balance_cents: 0, currency: 'NGN' };
 }

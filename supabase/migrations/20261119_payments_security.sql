@@ -23,7 +23,11 @@ as $$
 $$;
 
 -- ---------- 1. profiles: users can't change their own role/status/balance ----------
+-- Make sure the columns the app and triggers rely on exist (older databases lack some).
+alter table public.profiles add column if not exists role text not null default 'customer';
+alter table public.profiles add column if not exists status text not null default 'active';
 alter table public.profiles add column if not exists wallet_balance_cents integer default 0;
+alter table public.profiles add column if not exists updated_at timestamptz not null default now();
 
 create or replace function public.protect_profile_columns()
 returns trigger
@@ -167,20 +171,37 @@ on public.accounts for select
 to authenticated
 using (seller_id = auth.uid());
 
--- ---------- 3. wallets: read-only for users ----------
-drop policy if exists "users can create own wallet" on public.wallets;
-drop policy if exists "users can update own wallet" on public.wallets;
+-- Sections 3–5 skip any table/column that doesn't exist in this database.
+do $$
+begin
+  -- ---------- 3. wallets: read-only for users ----------
+  if to_regclass('public.wallets') is not null then
+    execute 'drop policy if exists "users can create own wallet" on public.wallets';
+    execute 'drop policy if exists "users can update own wallet" on public.wallets';
+  end if;
 
--- ---------- 4. deposits / orders: created by the server only ----------
-drop policy if exists "users can create own deposits" on public.deposits;
-drop policy if exists "customers can create own orders" on public.orders;
+  -- ---------- 4. deposits / orders: created by the server only ----------
+  if to_regclass('public.deposits') is not null then
+    execute 'drop policy if exists "users can create own deposits" on public.deposits';
 
--- ---------- 5. deposits.payment_method accepts the gateways in use ----------
-alter table public.deposits drop constraint if exists deposits_payment_method_check;
-alter table public.deposits
-  add constraint deposits_payment_method_check
-  check (payment_method in ('card', 'transfer', 'paystack', 'ercas')) not valid;
+    -- ---------- 5. deposits.payment_method accepts the gateways in use ----------
+    if exists (select 1 from information_schema.columns
+               where table_schema = 'public' and table_name = 'deposits' and column_name = 'payment_method') then
+      execute 'alter table public.deposits drop constraint if exists deposits_payment_method_check';
+      execute $c$alter table public.deposits
+               add constraint deposits_payment_method_check
+               check (payment_method in ('card', 'transfer', 'paystack', 'ercas')) not valid$c$;
+    end if;
 
--- Faster reference lookups for callbacks / webhooks.
-create index if not exists deposits_payment_reference_idx on public.deposits(payment_reference);
-create index if not exists orders_payment_reference_idx on public.orders(payment_reference);
+    if exists (select 1 from information_schema.columns
+               where table_schema = 'public' and table_name = 'deposits' and column_name = 'payment_reference') then
+      execute 'create index if not exists deposits_payment_reference_idx on public.deposits(payment_reference)';
+    end if;
+  end if;
+
+  execute 'drop policy if exists "customers can create own orders" on public.orders';
+  if exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'orders' and column_name = 'payment_reference') then
+    execute 'create index if not exists orders_payment_reference_idx on public.orders(payment_reference)';
+  end if;
+end $$;

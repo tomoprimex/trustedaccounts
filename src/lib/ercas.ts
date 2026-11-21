@@ -38,7 +38,7 @@ export interface ErcasInitResult {
 }
 
 export async function initializeTransaction(input: InitializeTransactionInput): Promise<ErcasInitResult> {
-  const res = await fetch(`${ERCASPAY_BASE_URL}/payment/initiate`, {
+  const res = await fetchWithRetry(`${ERCASPAY_BASE_URL}/payment/initiate`, {
     method: "POST",
     headers: headers(),
     body: JSON.stringify({
@@ -71,14 +71,26 @@ export interface ErcasVerifyResult {
   raw: unknown;
 }
 
+/** fetch with one retry on network errors (DNS hiccups, timeouts). */
+async function fetchWithRetry(url: string, init: RequestInit) {
+  try {
+    return await fetch(url, init);
+  } catch {
+    await new Promise((r) => setTimeout(r, 800));
+    return fetch(url, init);
+  }
+}
+
 export async function verifyTransaction(transactionReference: string): Promise<ErcasVerifyResult> {
-  const res = await fetch(
+  const res = await fetchWithRetry(
     `${ERCASPAY_BASE_URL}/payment/transaction/verify/${encodeURIComponent(transactionReference)}`,
     { headers: headers(), cache: "no-store" }
   );
 
+  // Unpaid transactions come back with requestSuccessful=false but still include a status
+  // (e.g. "UNCOMPLETED"), so only treat a missing body as an error.
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || data.requestSuccessful === false || !data.responseBody) {
+  if (!res.ok || !data.responseBody?.status) {
     throw new Error(data.responseMessage || data.message || `Ercaspay verify failed (${res.status})`);
   }
 

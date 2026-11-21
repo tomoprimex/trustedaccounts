@@ -41,6 +41,9 @@ export async function getRequestUser(request: Request): Promise<User | null> {
 }
 
 export function siteUrl(request?: Request) {
+  // In development, send the gateway back to wherever the app is running (e.g. localhost),
+  // not the production domain, which may be running different code.
+  if (request && process.env.NODE_ENV !== "production") return new URL(request.url).origin;
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
   if (fromEnv) return fromEnv;
   if (request) return new URL(request.url).origin;
@@ -313,6 +316,58 @@ export async function verifyAndSettle(db: SupabaseClient, record: PaymentRecord)
   if (record.kind === "deposit") return completeDeposit(db, record.id, verified.amountKobo);
   if (record.kind === "order") return fulfillOrder(db, record.id, verified.amountKobo);
   return completeWebsitePurchase(db, record.id, verified.amountKobo);
+}
+
+/**
+ * Re-checks a user's recent pending deposits and orders with the gateway and settles any that
+ * have been paid. Catches payments the callback page missed (slow bank transfers, closed tabs,
+ * webhooks that never arrived).
+ */
+export async function reconcileUserPayments(userId: string) {
+  const db = createAdminClient();
+  const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [{ data: deposits }, { data: orders }] = await Promise.all([
+    db
+      .from("deposits")
+      .select("id, user_id, payment_method, payment_reference")
+      .eq("user_id", userId)
+      .eq("status", "pending")
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(10),
+    db
+      .from("orders")
+      .select("id, customer_id, payment_method, payment_reference")
+      .eq("customer_id", userId)
+      .eq("status", "pending")
+      .in("payment_method", ["paystack", "ercas"])
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(10),
+  ]);
+
+  const records: PaymentRecord[] = [
+    ...(deposits ?? []).map((d) => ({
+      kind: "deposit" as const,
+      id: d.id,
+      userId: d.user_id,
+      provider: (d.payment_method === "ercas" ? "ercas" : "paystack") as Provider,
+      providerReference: d.payment_reference,
+    })),
+    ...(orders ?? []).map((o) => ({
+      kind: "order" as const,
+      id: o.id,
+      userId: o.customer_id,
+      provider: (o.payment_method === "ercas" ? "ercas" : "paystack") as Provider,
+      providerReference: o.payment_reference,
+    })),
+  ];
+
+  const results = await Promise.all(
+    records.map((record) => verifyAndSettle(db, record).catch(() => ({ status: "pending" as const })))
+  );
+  return { checked: records.length, settled: results.filter((r) => r.status === "success" || r.status === "refunded").length };
 }
 
 async function markFailed(db: SupabaseClient, record: PaymentRecord) {

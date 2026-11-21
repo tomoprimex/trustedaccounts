@@ -21,14 +21,31 @@ export default function WalletPage() {
     async function loadData() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
+        if (!user) return;
 
+        const refresh = async () => {
           const [wallet, depositsData] = await Promise.all([
             getWalletBalance(user.id),
             getRecentDeposits(user.id, 10),
           ]);
           setWalletBalance(wallet.balance_cents);
           setDeposits(depositsData || []);
+          return depositsData || [];
+        };
+
+        const current = await refresh();
+        setLoading(false);
+
+        // Pending top-ups may have been paid after the user left the checkout page
+        // (bank transfers can take minutes). Ask the server to re-check them.
+        if (current.some((d: any) => d.status === "pending")) {
+          const { data: { session } } = await supabase.auth.getSession();
+          const res = await fetch("/api/payments/reconcile", {
+            method: "POST",
+            headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+          });
+          const result = await res.json().catch(() => null);
+          if (result?.settled > 0) await refresh();
         }
       } catch (error) {
         console.error('Error loading wallet data:', error);
